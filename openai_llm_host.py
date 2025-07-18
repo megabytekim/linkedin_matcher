@@ -16,6 +16,10 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 import openai
 from openai import OpenAI
 
@@ -42,6 +46,9 @@ class OpenAILLMHost:
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         if not self.api_key:
             raise ValueError("OpenAI API key is required. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
+        
+        # Get model from environment or use default
+        self.model = os.getenv('OPENAI_MODEL')
         
         self.client = OpenAI(api_key=self.api_key)
         self.conversation_history = []
@@ -299,7 +306,7 @@ Be conversational, helpful, and proactive in suggesting next steps."""
             
             # Call OpenAI with tool access
             response = self.client.chat.completions.create(
-                model="gpt-4-turbo-preview",
+                model=self.model,
                 messages=messages,
                 tools=self.mcp_tools,
                 tool_choice="auto",
@@ -336,7 +343,7 @@ Be conversational, helpful, and proactive in suggesting next steps."""
                 ]
                 
                 final_response = self.client.chat.completions.create(
-                    model="gpt-4-turbo-preview",
+                    model=self.model,
                     messages=final_messages,
                     temperature=0.7,
                     max_tokens=2000
