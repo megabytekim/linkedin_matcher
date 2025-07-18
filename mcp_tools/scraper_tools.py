@@ -9,20 +9,57 @@ This module contains pure Python functions for LinkedIn scraping:
 - get_job_summary: Get quick job overview
 """
 
-from scraper_module.job_scraper import JobScraper, scrape_job_page, scrape_multiple_jobs as scraper_scrape_multiple_jobs
+from scraper_module.job_scraper import JobScraper
 
-def scrape_job(url: str, max_content_length: int = 2000):
+async def scrape_job_async(url: str, max_content_length: int = 2000):
     """
-    Scrape a single LinkedIn job posting.
+    Async-compatible scrape job function.
     
     Args:
         url: LinkedIn job URL to scrape
         max_content_length: Maximum length for description content
         
     Returns:
-        Dictionary with job information (title, company, location, description, etc.) or None if failed
+        Dictionary with job information or None if failed
     """
-    return scrape_job_page(url, max_content_length)
+    try:
+        async with JobScraper() as scraper:
+            return await scraper.scrape_job_page(url, max_content_length)
+    except Exception as e:
+        print(f"Error scraping {url}: {e}")
+        return None
+
+def scrape_job(url: str, max_content_length: int = 2000):
+    """
+    Synchronous scrape job function for backwards compatibility.
+    
+    Args:
+        url: LinkedIn job URL to scrape
+        max_content_length: Maximum length for description content
+        
+    Returns:
+        Dictionary with job information or None if failed
+    """
+    import asyncio
+    try:
+        # Check if we're in an event loop
+        try:
+            loop = asyncio.get_running_loop()
+            # We're in an async context, can't use asyncio.run()
+            # Return a placeholder for now
+            return {
+                'url': url,
+                'error': 'Cannot scrape from async context - use scrape_job_async instead',
+                'title': 'Scraping Error',
+                'company': 'N/A',
+                'location': 'N/A'
+            }
+        except RuntimeError:
+            # No event loop running, safe to use asyncio.run()
+            return asyncio.run(scrape_job_async(url, max_content_length))
+    except Exception as e:
+        print(f"Error scraping {url}: {e}")
+        return None
 
 def scrape_multiple_jobs(urls: list[str], max_content_length: int = 1500):
     """
@@ -35,7 +72,12 @@ def scrape_multiple_jobs(urls: list[str], max_content_length: int = 1500):
     Returns:
         List of job data dictionaries
     """
-    return scraper_scrape_multiple_jobs(urls, max_content_length)
+    results = []
+    for url in urls:
+        result = scrape_job(url, max_content_length)
+        if result:
+            results.append(result)
+    return results
 
 def convert_to_guest_url(url: str):
     """
@@ -73,5 +115,8 @@ def get_job_summary(url: str):
     Returns:
         Dictionary with basic job info or None if failed
     """
-    scraper = JobScraper()
-    return scraper.get_job_summary(url) 
+    # Use guest URL conversion for faster processing
+    guest_url = convert_to_guest_url(url)
+    if guest_url:
+        return scrape_job(guest_url, max_content_length=500)
+    return None 
