@@ -1,0 +1,15 @@
+# Environment Variables Template for LinkedIn Job Scraper
+# Copy this to .env and fill in your actual values
+
+# Gmail API Configuration
+GMAIL_CREDENTIALS_FILE=credentials.json
+GMAIL_TOKEN_FILE=token.json
+GMAIL_DEFAULT_QUERY=from:linkedin.com
+GMAIL_MAX_RESULTS=10
+
+# OpenAI API Configuration (required for openai_llm_host.py)
+# Get your API key from: https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Optional: Set specific OpenAI model (defaults to gpt-4-turbo-preview)
+# OPENAI_MODEL=gpt-4-turbo-preview 
