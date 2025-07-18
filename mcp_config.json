@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "linkedin-job-scraper": {
+      "command": "python",
+      "args": ["mcp_client.py"],
+      "cwd": ".",
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+} 
