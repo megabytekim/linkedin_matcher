@@ -20,7 +20,7 @@ def test_gmail_tools():
     print("=" * 50)
     
     try:
-        from core.tools.gmail import list_emails, extract_job_urls, get_email_content, label_email
+        from core.tools.gmail import list_emails, extract_job_urls, get_message_content, add_label
         
         # Test 1: List emails
         print("\n🔍 Test 1: list_emails")
@@ -37,14 +37,14 @@ def test_gmail_tools():
             print(f"✅ Found {len(job_urls)} job URLs")
             
             # Test 3: Get email content
-            print(f"\n📖 Test 3: get_email_content")
-            content = get_email_content(email_id)
+            print(f"\n📖 Test 3: get_message_content")
+            content = get_message_content(email_id)
             content_length = len(content) if content else 0
             print(f"✅ Retrieved {content_length} characters of content")
             
             # Test 4: Label email (optional)
-            print(f"\n🏷️  Test 4: label_email")
-            result = label_email(email_id, "MCP_TESTED")
+            print(f"\n🏷️  Test 4: add_label")
+            result = add_label(email_id, "MCP_TESTED")
             print(f"✅ Label result: {result}")
         else:
             print("❌ No emails found - cannot test other Gmail functions")

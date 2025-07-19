@@ -82,26 +82,26 @@ class OpenAILLMHost:
     def _init_local_tools(self):
         """Initialize local function imports for direct tool calls."""
         from core.tools.gmail import (
-            list_emails, extract_job_urls, get_email_content, 
-            label_email, get_job_details_from_email
+            list_emails, extract_job_urls, get_message_content,
+            add_label, get_job_details_from_email
         )
         from core.tools.scraper import (
-            scrape_job_async, scrape_job, scrape_multiple_jobs,
-            convert_to_guest_url, validate_linkedin_url, get_job_summary
+            scrape_job, scrape_multiple_jobs, convert_to_guest_url,
+            validate_linkedin_url, get_job_summary
         )
         
-        self.local_tools = {
+        # Define MCP tools
+        self.mcp_tools = {
             'list_emails': list_emails,
             'extract_job_urls': extract_job_urls,
-            'get_email_content': get_email_content,
-            'label_email': label_email,
+            'get_message_content': get_message_content,
+            'add_label': add_label,
             'get_job_details_from_email': get_job_details_from_email,
-            'scrape_job_async': scrape_job_async,
             'scrape_job': scrape_job,
             'scrape_multiple_jobs': scrape_multiple_jobs,
             'convert_to_guest_url': convert_to_guest_url,
             'validate_linkedin_url': validate_linkedin_url,
-            'get_job_summary': get_job_summary,
+            'get_job_summary': get_job_summary
         }
         
         print("🔧 Local tools mode (direct import)")

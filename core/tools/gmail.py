@@ -35,32 +35,32 @@ def extract_job_urls(email_id: str):
     gmail = GmailAPI()
     return gmail.extract_job_urls(email_id)
 
-def get_email_content(email_id: str):
+def get_message_content(email_id: str):
     """
-    Get full content of an email.
+    Get the full text content of a Gmail message.
     
     Args:
         email_id: Gmail message ID
         
     Returns:
-        Plain text content of the email or None if failed
+        Plain text content of the message or None if failed
     """
     gmail = GmailAPI()
-    return gmail.get_email_content(email_id)
+    return gmail.get_message_content(email_id)
 
-def label_email(email_id: str, label: str):
+def add_label(email_id: str, label: str):
     """
-    Apply a label to a Gmail message.
+    Add a label to a Gmail message.
     
     Args:
         email_id: Gmail message ID
-        label: Label name to apply (e.g., "PROCESSED", "JOB_FOUND")
+        label: Name of the label to add
         
     Returns:
         True if successful, False otherwise
     """
     gmail = GmailAPI()
-    return gmail.label_email(email_id, label)
+    return gmail.add_label(email_id, label)
 
 def get_job_details_from_email(email_id: str):
     """
@@ -101,14 +101,14 @@ def mcp_extract_job_urls(email_id: str):
     return extract_job_urls(email_id)
 
 @app.tool()
-def mcp_get_email_content(email_id: str):
+def mcp_get_message_content(email_id: str):
     """Get full content of an email."""
-    return get_email_content(email_id)
+    return get_message_content(email_id)
 
 @app.tool()
-def mcp_label_email(email_id: str, label: str):
+def mcp_add_label(email_id: str, label: str):
     """Apply a label to a Gmail message."""
-    return label_email(email_id, label)
+    return add_label(email_id, label)
 
 @app.tool()
 def mcp_get_job_details_from_email(email_id: str):

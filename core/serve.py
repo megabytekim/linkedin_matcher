@@ -60,9 +60,10 @@ def full_workflow(query: str = "from:linkedin.com", max_emails: int = 5, max_job
 
 if __name__ == "__main__":
     # Run the MCP server
-    print("🚀 Starting LinkedIn Job Scraper MCP Server...")
-    print("📧 Gmail Tools: mcp_list_emails, mcp_extract_job_urls, mcp_get_email_content, mcp_label_email")
-    print("🌐 Scraper Tools: mcp_scrape_job, mcp_scrape_multiple_jobs, mcp_convert_to_guest_url, mcp_validate_linkedin_url")
-    print("🔄 Workflow Tool: full_workflow")
+    print("🚀 LinkedIn Job Scraper MCP Server Starting...")
+    print("=" * 60)
+    print("📧 Gmail Tools: mcp_list_emails, mcp_extract_job_urls, mcp_get_message_content, mcp_add_label")
+    print("🌐 Scraper Tools: mcp_scrape_job, mcp_scrape_multiple_jobs, mcp_convert_to_guest_url, mcp_validate_linkedin_url, mcp_get_job_summary")
+    print("=" * 60)
     
     app.run() 
