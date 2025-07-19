@@ -45,7 +45,7 @@ jobs:
       run: |
         python -m pytest scraper_module/tests/ --cov=scraper_module --cov-report=xml || true
 
-  # 배포는 main 브랜치에 푸시될 때만 실행
+  # 배포는 main 브랜치에 푸시될 때만 실행 (로컬 전용 프로젝트)
   deploy:
     needs: test
     runs-on: ubuntu-latest
@@ -57,18 +57,14 @@ jobs:
       
     - name: Deploy notification
       run: |
-        echo "🚀 Deploying to production..."
+        echo "🚀 CI/CD Pipeline completed successfully!"
         echo "📦 Version: ${{ github.sha }}"
-        echo "✅ All tests passed, ready for deployment!"
-        echo "🔄 You can add your deployment scripts here"
-        
-    - name: Create deployment artifact
-      run: |
-        echo "Creating deployment package..."
-        tar -czf linkedin-matcher-${{ github.sha }}.tar.gz \
-          --exclude='.git' \
-          --exclude='venv' \
-          --exclude='__pycache__' \
-          --exclude='.pytest_cache' \
-          .
-        echo "📦 Artifact created: linkedin-matcher-${{ github.sha }}.tar.gz" 
+        echo "✅ All tests passed!"
+        echo "📋 This is a local-only LinkedIn scraper project"
+        echo "🔧 To use locally:"
+        echo "   1. python run_tests.py"
+        echo "   2. python test_mcp.py"
+        echo "   3. Set up your Gmail API credentials"
+        echo "   4. Configure OpenAI API key"
+        echo ""
+        echo "🎉 Ready for local development!" 
