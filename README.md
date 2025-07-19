@@ -241,10 +241,37 @@ Error: 401 Unauthorized
 
 ---
 
+## 🔄 CI/CD
+
+### GitHub Actions 자동화
+- **자동 테스트**: `main`, `develop` 브랜치에 푸시하거나 PR 생성 시 자동 실행
+- **코드 품질 검사**: 린팅, 단위 테스트, 커버리지 리포트
+- **자동 배포**: `main` 브랜치 배포 시 자동화된 릴리즈
+
+### 로컬 테스트 실행
+```bash
+# 전체 테스트 스위트 실행
+python run_tests.py
+
+# 개발 의존성 설치
+pip install -r requirements-dev.txt
+
+# 개별 테스트 실행
+python -m pytest scraper_module/tests/ -v
+```
+
+### CI/CD 상태
+![CI/CD Status](https://github.com/USERNAME/linkedin_matcher/workflows/CI/CD%20Pipeline/badge.svg)
+
+> 💡 **참고**: `USERNAME`을 실제 GitHub 사용자명으로 변경하세요
+
+---
+
 ## 🆘 도움이 필요하신가요?
 
 - 📖 **설정 가이드**: 위의 '빠른 시작' 섹션을 따라하세요
 - 🧪 **테스트**: `python test_mcp.py`로 모든 도구가 정상 작동하는지 확인
+- 🔄 **CI/CD**: `python run_tests.py`로 로컬에서 테스트 실행
 - 🐛 **버그 리포트**: GitHub Issues에 문제를 신고해주세요
 
 **Happy Scraping! 🚀** 

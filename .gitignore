@@ -48,4 +48,13 @@ ENV/
 
 # Test output
 test_output/
-*.output 
+*.output
+
+# CI/CD and Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+*.tar.gz
+linkedin-matcher-*.tar.gz 
