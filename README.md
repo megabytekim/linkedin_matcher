@@ -1,392 +1,250 @@
-# LinkedIn Job Scraper
+# 🔍 LinkedIn 채용공고 스크래퍼
 
-A powerful, multi-interface tool that extracts LinkedIn job URLs from Gmail and scrapes complete job descriptions with full text content.
+Gmail에서 LinkedIn 채용공고를 자동으로 찾아서 스크래핑하는 AI 어시스턴트 도구입니다.
 
-## ✨ Features
+## ✨ 주요 기능
 
-- 🔍 **Gmail Integration** - Extract job URLs from LinkedIn job alert emails
-- 🌐 **LinkedIn Job Scraping** - Scrape complete job descriptions without authentication
-- 🚀 **Full Content Extraction** - Handles "Show more" buttons to get complete job descriptions
-- ⚡ **Fast & Reliable** - Fresh browser instances prevent conflicts and timeouts
-- 📝 **Rich Data Extraction** - Job titles, companies, locations, full descriptions, and metadata
-- 🛡️ **Popup Handling** - Automatically handles LinkedIn dialogs and modals
-- 🔄 **Rate Limiting** - Built-in delays to avoid being blocked
-- 🤖 **Multiple Interfaces** - Chat, MCP tools, and direct Python modules
+- **📧 Gmail 연동**: 이메일에서 LinkedIn 채용공고 링크 자동 추출
+- **🌐 LinkedIn 스크래핑**: 채용공고 상세 정보 자동 수집
+- **🤖 AI 어시스턴트 연동**: OpenAI GPT-4와 MCP(Model Context Protocol) 통합
+- **🔄 워크플로우 자동화**: 이메일 검색 → URL 추출 → 채용공고 스크래핑 자동화
 
-## 🎯 Recent Success
-
-✅ **Perfect Results**: Successfully scraped 3/3 real LinkedIn jobs  
-✅ **Full Descriptions**: 3,226-7,211 characters per job (no truncation)  
-✅ **Speed**: Fast processing with fresh browser instances  
-✅ **Reliability**: 100% success rate with popup handling
-
-## 🚀 Quick Start
-
-### 1. Setup Environment
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-playwright install
-```
-
-### 2. Gmail API Setup
-1. Follow the detailed guide in `GMAIL_SETUP.md`
-2. Download `credentials.json` from Google Cloud Console
-3. Create `.env` file with your configuration
-
-### 3. Create .env File
-```env
-GMAIL_CREDENTIALS_FILE=credentials.json
-GMAIL_TOKEN_FILE=token.json
-GMAIL_DEFAULT_QUERY=from:linkedin.com
-GMAIL_MAX_RESULTS=10
-```
-
-## 🎯 **Four Ways to Use the Project**
-
-### **🤖 1. OpenAI GPT-4 Host (Most Powerful)**
-**True AI-powered natural language interface with function calling**
-
-```bash
-# Set your OpenAI API key
-export OPENAI_API_KEY="sk-your-key-here"
-
-# Start the GPT-4 powered interface
-python openai_llm_host.py
-```
-
-**Example conversations:**
-```
-🗣️  You: Find data science jobs in my recent emails and analyze them
-🤖 AI Assistant: I'll search your Gmail for data science job emails and scrape the most promising opportunities.
-
-[GPT-4 automatically uses tools: list_emails, extract_job_urls, scrape_multiple_jobs]
-
-I found 8 data science opportunities in your recent emails. Here are the top 3:
-
-1. **Senior Data Scientist at Google**
-   📍 Seoul, South Korea | 💰 $180k-220k
-   🔗 Apply: https://linkedin.com/jobs-guest/jobs/view/123...
-   📝 Google is seeking a Senior Data Scientist to join our Ads team...
-
-2. **ML Engineer at Netflix** 
-   📍 Remote | 💰 $160k-200k  
-   🔗 Apply: https://linkedin.com/jobs-guest/jobs/view/456...
-   📝 Netflix is looking for an ML Engineer to work on recommendation systems...
-
-Would you like me to scrape additional details for any of these positions or search for more specific criteria?
-```
-
-**GPT-4 Features:**
-- 🧠 **True Natural Language Understanding** - Complex, conversational queries
-- 🔧 **Automatic Tool Selection** - GPT-4 decides which tools to use and when
-- 🎯 **Contextual Responses** - Understands your intent and provides tailored results
-- 💡 **Proactive Suggestions** - Offers next steps and follow-up actions
-- 🔄 **Multi-step Workflows** - Chains multiple operations intelligently
-
-### **💬 2. Simple Chat Interface (Free & Fast)**
-**Rule-based natural language interaction - no API costs**
-
-```bash
-# Start the interactive chat (no API key needed)
-python llm.py
-```
-
-**Example conversations:**
-```
-🗣️  You: Find data science jobs
-🤖 Assistant: Found 3 Jobs for 'data science'
-
-1. Senior Data Scientist at Google
-🏢 Company: Google
-📍 Location: Seoul, South Korea
-📧 From email: Jan 18, 2025
-📝 Description: We are looking for a Senior Data Scientist to join...
-🔗 Apply: https://www.linkedin.com/jobs-guest/jobs/view/1234567890/
-```
-
-**Chat Features:**
-- 🆓 **Completely Free** - No API costs or rate limits
-- 🤖 **Natural Language** - Ask questions like you would to a human
-- 🔒 **Privacy First** - No data sent to external services
-- ⚡ **Fast & Reliable** - Works offline (after Gmail auth)
-- 💾 **Conversation History** - Saves your chat for later reference
-
-### **🔧 3. MCP Tools (AI Assistant Integration)**
-**For Claude Desktop, GPT, and other AI assistants**
-
-```bash
-# Start MCP server
-python mcp_client.py
-
-# Configure your AI assistant with mcp_config.json
-```
-
-**Available Tools:**
-- `list_emails(query, max_results)` - Search Gmail
-- `extract_job_urls(email_id)` - Get LinkedIn URLs
-- `scrape_job(url)` - Scrape single job
-- `scrape_multiple_jobs(urls)` - Batch scrape
-- `full_workflow(query, max_emails, max_jobs)` - Complete automation
-
-### **🐍 4. Direct Python Modules (Developer Integration)**
-**For custom scripts and applications**
-
-```python
-# Gmail integration
-from gmail_module.gmail_api import GmailAPI
-gmail = GmailAPI()
-emails = gmail.list_messages("from:linkedin.com", 10)
-job_urls = gmail.extract_job_urls(emails[0]['id'])
-
-# Job scraping
-from scraper_module.job_scraper import scrape_job_page
-job_data = scrape_job_page(job_urls[0]['url'])
-print(f"Job: {job_data['title']} at {job_data['company']}")
-```
-
-## 📁 Project Structure
+## 🏗️ 아키텍처
 
 ```
 linkedin_matcher/
-├── llm.py                       # 💬 LLM Chat Interface (NEW!)
-├── mcp_client.py               # 🔧 MCP Server for AI assistants
-├── test_mcp.py                 # 🧪 MCP tools testing
-├── test_llm.py                 # 🧪 Chat interface testing
-├── mcp_config.json             # ⚙️ AI assistant configuration
-├── MCP_USAGE.md               # 📖 MCP usage guide
-│
-├── gmail_module/               # 📧 Gmail API functionality
-│   ├── gmail_api.py           # Gmail authentication & URL extraction
-│   └── tests/                 # Gmail-specific tests
-│
-├── scraper_module/            # 🌐 LinkedIn job scraping
-│   ├── job_scraper.py         # Advanced Playwright scraper
-│   ├── extract_and_save_real_urls.py    # Extract URLs from Gmail
-│   ├── test_with_real_urls.py           # Test with real data
-│   └── visible_urls/          # Scraped data and results
-│
-├── mcp_tools/                 # 🔧 MCP tool implementations
-│   ├── gmail_tools.py         # Gmail MCP tools
-│   └── scraper_tools.py       # Scraper MCP tools
-│
-├── config.py                  # ⚙️ Configuration loader
-├── GMAIL_SETUP.md            # 📖 Gmail setup guide
-└── requirements.txt          # 📦 Dependencies
+├── 📁 core/                    # MCP 서버 (핵심)
+│   ├── server_app.py          # 단일 FastMCP 인스턴스
+│   ├── serve.py               # 서버 런처
+│   └── tools/                 # MCP 도구들
+│       ├── gmail.py           # Gmail 도구 등록
+│       └── scraper.py         # 스크래핑 도구 등록
+├── 📁 host/                   # AI 호스트
+│   └── openai_host.py         # OpenAI GPT-4 호스트
+├── 📁 gmail_module/           # Gmail API 모듈
+│   ├── gmail_api.py           # Gmail 연동 클래스
+│   └── tests/                 # Gmail 테스트
+├── 📁 scraper_module/         # 스크래핑 모듈
+│   ├── job_scraper.py         # LinkedIn 스크래퍼
+│   └── tests/                 # 스크래핑 테스트
+├── mcp_config.json            # MCP 서버 설정
+├── config.py                  # 전역 설정
+└── test_mcp.py               # 통합 테스트
 ```
 
-## 🔧 Core Modules
+### 🔄 데이터 흐름
 
-### Gmail Module (`gmail_module/`)
-- **Gmail API Integration** - OAuth2 authentication and email access
-- **Job URL Extraction** - Parse LinkedIn job URLs from email content
-- **Email Labeling** - Organize processed emails
-- **Search & Filter** - Query emails with various criteria
+```
+사용자 요청 → OpenAI Host → MCP Server → Gmail/Scraper Tools → 결과 반환
+```
 
-### Scraper Module (`scraper_module/`)
-- **Advanced LinkedIn Scraper** - Extracts complete job information
-- **Guest URL Conversion** - Access LinkedIn jobs without authentication
-- **Popup Handling** - Automatically closes dialogs and modals
-- **Fresh Browser Strategy** - Prevents conflicts and timeouts
-- **Full Content Extraction** - Handles "Show more" buttons
-- **Rate Limiting** - Avoids being blocked by LinkedIn
+## 🚀 빠른 시작
 
-### LLM Chat Interface (`llm.py`)
-- **Natural Language Processing** - Understands user intent
-- **Intelligent Workflows** - Combines Gmail + scraping automatically
-- **Conversation Memory** - Maintains context across queries
-- **Smart Caching** - Avoids redundant scraping
-- **Error Handling** - Graceful failure with helpful suggestions
+### 1️⃣ 환경 설정
 
-### MCP Tools (`mcp_tools/`)
-- **10 Powerful Tools** - Complete Gmail and scraping toolkit
-- **FastMCP Integration** - Ready for AI assistant use
-- **Comprehensive Testing** - 4/4 tests passing
-- **Standard Protocol** - Works with Claude, GPT, and others
+```bash
+# 저장소 클론
+git clone [repository-url]
+cd linkedin_matcher
 
-## 📊 Sample Results
+# 가상환경 생성 및 활성화
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# 또는 venv\Scripts\activate  # Windows
 
+# 의존성 설치
+pip install -r requirements.txt
+
+# Playwright 브라우저 설치
+playwright install
+```
+
+### 2️⃣ API 키 설정
+
+`.env` 파일을 생성하고 OpenAI API 키를 추가하세요:
+
+```bash
+OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+### 3️⃣ Gmail API 설정
+
+1. [Google Cloud Console](https://console.cloud.google.com/)에서 새 프로젝트 생성
+2. Gmail API 활성화
+3. OAuth 2.0 클라이언트 ID 생성 (데스크톱 애플리케이션)
+4. `credentials.json` 파일을 프로젝트 루트에 저장
+
+### 4️⃣ 테스트 실행
+
+```bash
+# MCP 도구 테스트
+PYTHONPATH=. python test_mcp.py
+```
+
+모든 테스트가 통과하면 설정이 완료된 것입니다! ✅
+
+## 🛠️ 사용법
+
+### MCP 서버 모드 (권장)
+
+**1단계: MCP 서버 시작**
+```bash
+PYTHONPATH=. python core/serve.py
+```
+
+**2단계: AI 어시스턴트에서 MCP 설정**
+- `mcp_config.json` 파일을 AI 어시스턴트의 MCP 설정에 추가
+- 서버가 `stdio://core/serve.py`로 연결됨
+
+**3단계: 자연어로 요청**
+```
+최근 LinkedIn 이메일을 검색해서 채용공고가 있는지 확인해주세요.
+채용공고가 있으면 스크래핑해서 상세 정보를 알려주세요.
+```
+
+### 로컬 호스트 모드
+
+```bash
+# OpenAI 호스트 직접 실행
+python host/openai_host.py
+```
+
+대화형 모드에서 AI 어시스턴트와 채팅할 수 있습니다.
+
+## 🔧 도구 기능
+
+### 📧 Gmail 도구
+
+- **`list_emails`**: 검색 쿼리로 이메일 목록 조회
+- **`extract_job_urls`**: 이메일에서 LinkedIn 채용공고 URL 추출
+- **`get_email_content`**: 이메일 전체 내용 조회
+- **`label_email`**: 이메일에 라벨 추가
+- **`get_job_details_from_email`**: 이메일에서 채용공고 상세 정보 추출
+
+### 🌐 스크래핑 도구
+
+- **`scrape_job`**: LinkedIn 채용공고 스크래핑
+- **`scrape_multiple_jobs`**: 여러 채용공고 일괄 스크래핑
+- **`validate_linkedin_url`**: LinkedIn URL 유효성 검증
+- **`convert_to_guest_url`**: 로그인 불필요한 게스트 URL 변환
+- **`get_job_summary`**: 채용공고 요약 정보 조회
+
+## 💡 사용 예제
+
+### 이메일에서 채용공고 찾기
+
+```python
+# 최근 LinkedIn 이메일 검색
+emails = list_emails("from:linkedin.com", 5)
+
+# 첫 번째 이메일에서 채용공고 URL 추출
+if emails:
+    urls = extract_job_urls(emails[0]['id'])
+    
+    # 채용공고 스크래핑
+    for url_info in urls:
+        job_data = scrape_job(url_info['url'])
+        print(f"직무: {job_data['title']}")
+        print(f"회사: {job_data['company']}")
+```
+
+### AI 어시스턴트 워크플로우
+
+```
+사용자: "최근 3일간 받은 LinkedIn 이메일을 확인해서 
+       Senior Developer 관련 채용공고가 있으면 
+       상세 정보를 스크래핑해서 정리해줘"
+
+AI: 1. Gmail에서 최근 LinkedIn 이메일 검색
+    2. 각 이메일에서 채용공고 URL 추출
+    3. "Senior Developer" 키워드가 포함된 공고 필터링
+    4. 해당 공고들을 스크래핑하여 상세 정보 수집
+    5. 결과를 정리하여 제공
+```
+
+## 📊 세션 메모리
+
+시스템은 대화 기록과 도구 실행 결과를 자동으로 저장합니다:
+
+- **`openai_conversation_history.json`**: 대화 내역
+- **`openai_session_memory.json`**: 도구 실행 결과
+
+이전 대화에서 추출한 채용공고 정보를 계속 참조할 수 있습니다.
+
+## ⚙️ 설정 파일
+
+### `mcp_config.json`
+MCP 서버 연결 설정
 ```json
 {
-  "title": "Senior Data Scientist, Ads Performance - Moloco Streaming Monetization",
-  "company": "Moloco",
-  "location": "Seoul, South Korea", 
-  "description": "About Moloco: Moloco is a machine learning company...", // 7,211 characters
-  "pageTitle": "Moloco hiring Senior Data Scientist...",
-  "jobDetails": ["Mid-Senior level", "Full-time", "Engineering"],
-  "url": "https://www.linkedin.com/comm/jobs/view/4267053111/...",
-  "guest_url": "https://www.linkedin.com/jobs-guest/jobs/view/4267053111/",
-  "scraped_at": "2025-07-18T22:49:50.391160"
+  "mcpServers": {
+    "linkedin-scraper": {
+      "command": "python",
+      "args": ["-u", "core/serve.py"],
+      "cwd": "/path/to/linkedin_matcher",
+      "env": {"PYTHONPATH": "."}
+    }
+  }
 }
 ```
 
-## ⚙️ Configuration
-
-Create a `.env` file with these variables:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GMAIL_CREDENTIALS_FILE` | `credentials.json` | Google Cloud credentials file |
-| `GMAIL_TOKEN_FILE` | `token.json` | OAuth token storage |
-| `GMAIL_DEFAULT_QUERY` | `from:linkedin.com` | Default Gmail search query |
-| `GMAIL_MAX_RESULTS` | `10` | Maximum emails per request |
-
-**Example configurations:**
-```env
-# LinkedIn job alerts only
-GMAIL_DEFAULT_QUERY=from:noreply@linkedin.com
-
-# All job-related emails  
-GMAIL_DEFAULT_QUERY=subject:job
-
-# Recent LinkedIn emails
-GMAIL_DEFAULT_QUERY=from:linkedin.com newer_than:7d
-```
-
-## 🔬 Testing
-
-### Test All Interfaces
-```bash
-# Test LLM chat interface
-python test_llm.py
-
-# Test MCP tools
-python test_mcp.py
-
-# Test with real data
-python scraper_module/test_with_real_urls.py
-
-# Extract real URLs from Gmail
-python scraper_module/extract_and_save_real_urls.py
-```
-
-### View Results
-After running tests, check these files:
-- `scraper_module/visible_urls/real_job_urls.json` - All extracted URLs
-- `scraper_module/visible_urls/real_scraping_results.json` - Complete job data
-- `conversation_history.json` - Chat conversation history
-
-## 🛡️ Technical Features
-
-### Advanced Scraping Strategy
-- **Fresh Browser Instances** - New browser for each job prevents state pollution
-- **Popup Auto-Handling** - Detects and closes LinkedIn dialogs automatically
-- **Smart "Show More" Logic** - Expands truncated job descriptions
-- **Guest URL Conversion** - Scrapes without LinkedIn authentication
-- **Optimized Timeouts** - Fast loading with graceful fallbacks
-
-### Rate Limiting & Reliability
-- **Conservative Delays** - 1-2 second delays between requests
-- **Error Recovery** - Multiple fallback strategies for page loading
-- **Browser Cleanup** - Automatic cleanup prevents memory leaks
-- **Stealth Settings** - User agent and viewport configuration
-
-### Intelligence Layer
-- **Natural Language Understanding** - Parse user intent from queries
-- **Smart Workflow Automation** - Combine multiple operations intelligently
-- **Caching Strategy** - Avoid redundant API calls and scraping
-- **Context Awareness** - Remember previous queries and results
-
-## 🐛 Troubleshooting
-
-### Chat Interface Issues
-```bash
-# Test chat interface
-python test_llm.py
-
-# Check dependencies
-pip install -r requirements.txt
-```
-
-### MCP Server Issues
-```bash
-# Test MCP tools
-python test_mcp.py
-
-# Start MCP server
-python mcp_client.py
-```
-
-### Gmail Issues
-- **Missing credentials.json** → Download from Google Cloud Console
-- **Authentication errors** → Delete `token.json` and re-authenticate  
-- **No emails found** → Check `.env` GMAIL_DEFAULT_QUERY setting
-
-### Scraping Issues
-- **Browser not installed** → Run `playwright install`
-- **Popup blocking scraper** → Fresh browser instances should handle this
-- **Incomplete descriptions** → "Show more" handling extracts full content
-- **Rate limiting** → Built-in delays prevent blocking
-
-## 📈 Performance Metrics
-
-Based on recent testing:
-- ✅ **Success Rate**: 100% (3/3 jobs scraped successfully)
-- ⚡ **Speed**: ~10-15 seconds per job (including popup handling)
-- 📝 **Content Quality**: 3,226-7,211 characters per job description
-- 🛡️ **Reliability**: No timeouts or conflicts with fresh browser strategy
-- 🤖 **Chat Response**: < 2 seconds for most queries
-- 🔧 **MCP Tools**: 4/4 tests passing with real data
-
-## 🎯 Use Cases
-
-### **For Job Seekers**
-```bash
-# Start natural conversation
-python llm.py
-
-# Ask naturally:
-"Find remote Python developer jobs"
-"What AI engineering opportunities do I have?"
-"Show me the latest startup job emails"
-```
-
-### **For AI Assistant Users**
-```bash
-# Connect to Claude Desktop / GPT
-python mcp_client.py
-
-# Use in AI conversations:
-"Use my LinkedIn scraper to find data science jobs"
-"Analyze my job emails and summarize opportunities"
-```
-
-### **For Developers**
+### `config.py`
+Gmail API 및 전역 설정
 ```python
-# Integrate into your applications
-from gmail_module.gmail_api import GmailAPI
-from scraper_module.job_scraper import scrape_job_page
-
-# Build custom workflows
-gmail = GmailAPI()
-emails = gmail.list_messages("machine learning", 5)
-# ... custom processing
+GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+CREDENTIALS_FILE = Path('credentials.json')
+TOKEN_FILE = Path('token.json')
 ```
 
-## 🔒 Security & Privacy
+## 🐛 문제 해결
 
-- **OAuth2 Authentication** - Secure Gmail access with minimal scopes
-- **Guest Mode Scraping** - No LinkedIn login required
-- **Local Data Storage** - All data stays on your machine
-- **No External APIs** - Direct scraping without third-party services
-- **Credential Security** - Sensitive files excluded from Git
-- **Conversation Privacy** - Chat history stored locally only
+### Common Issues
 
-## 📝 License
+**1. Gmail API 권한 부족**
+```
+Error: insufficientPermissions
+```
+→ `credentials.json` 재생성 후 `token.json` 삭제
 
-This project is for educational and personal use. Please respect LinkedIn's terms of service and rate limits.
+**2. Playwright 브라우저 없음**
+```
+Error: Executable doesn't exist
+```
+→ `playwright install` 실행
+
+**3. OpenAI API 키 오류**
+```
+Error: 401 Unauthorized
+```
+→ `.env` 파일의 API 키 확인
+
+**4. MCP 서버 연결 실패**
+```
+→ PYTHONPATH=. python core/serve.py로 서버 수동 실행 테스트
+```
+
+## 🔒 보안 주의사항
+
+- **API 키**: `.env` 파일을 Git에 커밋하지 마세요
+- **Gmail 토큰**: `token.json`은 민감한 정보입니다
+- **스크래핑**: LinkedIn 이용약관을 준수하여 적절한 간격으로 요청하세요
+
+## 🤝 기여 방법
+
+1. 이슈 리포트: 버그나 개선사항 제안
+2. 풀 리퀘스트: 코드 개선 및 새 기능 추가
+3. 문서 개선: 사용법이나 설정 가이드 개선
+
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스를 따릅니다.
 
 ---
 
-**🚀 Ready to supercharge your job search with AI-powered automation!**
+## 🆘 도움이 필요하신가요?
 
-**Get Started:**
-1. **Quick Chat**: `python llm.py` - Ask "Find data science jobs"
-2. **AI Integration**: `python mcp_client.py` - Connect to Claude/GPT  
-3. **Custom Code**: Import modules directly for your applications
+- 📖 **설정 가이드**: 위의 '빠른 시작' 섹션을 따라하세요
+- 🧪 **테스트**: `python test_mcp.py`로 모든 도구가 정상 작동하는지 확인
+- 🐛 **버그 리포트**: GitHub Issues에 문제를 신고해주세요
 
-**Your intelligent LinkedIn job search companion is ready!** 🎯 
+**Happy Scraping! 🚀** 

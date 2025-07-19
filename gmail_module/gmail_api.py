@@ -118,14 +118,19 @@ class GmailAPI:
             message_id: Gmail message ID
             
         Returns:
-            Plain text content of the message
+            Plain text content of the message or None if failed
         """
         try:
+            print(f"✅ Gmail API authenticated successfully")
+            
+            # Get the message
             message = self.service.users().messages().get(
-                userId='me', 
+                userId='me',
                 id=message_id,
                 format='full'
             ).execute()
+            
+            print(f"✅ Retrieved message content")
             
             # Extract text content from message payload
             content = self._extract_text_from_payload(message['payload'])
@@ -137,9 +142,22 @@ class GmailAPI:
                 print("❌ No text content found in message")
                 return None
                 
-        except HttpError as error:
-            print(f"❌ Error retrieving message: {error}")
+        except Exception as e:
+            print(f"❌ Error retrieving message: {e}")
             return None
+    
+    def get_email_content(self, message_id: str) -> Optional[str]:
+        """
+        Get the full text content of a Gmail message.
+        Alias for get_message_content for compatibility.
+        
+        Args:
+            message_id: Gmail message ID
+            
+        Returns:
+            Plain text content of the message or None if failed
+        """
+        return self.get_message_content(message_id)
     
     def add_label(self, message_id: str, label_name: str) -> bool:
         """
@@ -153,7 +171,7 @@ class GmailAPI:
             True if successful, False otherwise
         """
         try:
-            # Get or create label
+            # First check if label exists, create if not
             label_id = self._get_or_create_label(label_name)
             if not label_id:
                 return False
@@ -168,9 +186,23 @@ class GmailAPI:
             print(f"✅ Added label '{label_name}' to message")
             return True
             
-        except HttpError as error:
-            print(f"❌ Error adding label: {error}")
+        except Exception as e:
+            print(f"❌ Error adding label: {e}")
             return False
+    
+    def label_email(self, message_id: str, label_name: str) -> bool:
+        """
+        Apply a label to a Gmail message.
+        Alias for add_label for compatibility.
+        
+        Args:
+            message_id: Gmail message ID
+            label_name: Name of the label to add
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        return self.add_label(message_id, label_name)
     
     def extract_job_urls(self, message_id: str) -> List[Dict[str, str]]:
         """

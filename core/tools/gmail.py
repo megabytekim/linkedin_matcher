@@ -1,15 +1,12 @@
 """
-MCP Tools for Gmail Integration
+Gmail Tools for LinkedIn Job Scraper
 
-This module contains pure Python functions for Gmail functionality:
-- list_emails: List and search Gmail messages
-- extract_job_urls: Extract LinkedIn job URLs from emails
-- label_email: Apply labels to processed emails
-- get_email_content: Retrieve full email content
-- get_job_details_from_email: Complete email to job data workflow
+Pure functions for Gmail operations that are registered with the main MCP server.
+No FastMCP instance is created here - tools are registered on the main app.
 """
 
 from gmail_module.gmail_api import GmailAPI
+from core.server_app import app
 
 def list_emails(query: str = "from:linkedin.com", max_results: int = 10):
     """
@@ -75,7 +72,7 @@ def get_job_details_from_email(email_id: str):
     Returns:
         List of complete job data dictionaries with scraped details
     """
-    from scraper_module.job_scraper import scrape_job_page
+    from core.tools.scraper import scrape_job
     
     # Get job URLs from email
     job_urls = extract_job_urls(email_id)
@@ -84,10 +81,36 @@ def get_job_details_from_email(email_id: str):
     job_details = []
     for url_info in job_urls:
         try:
-            job_data = scrape_job_page(url_info['url'])
+            job_data = scrape_job(url_info['url'])
             if job_data:
                 job_details.append(job_data)
         except Exception as e:
             print(f"Failed to scrape {url_info['url']}: {e}")
     
-    return job_details 
+    return job_details
+
+# Register tools with the main MCP server
+@app.tool()
+def mcp_list_emails(query: str = "from:linkedin.com", max_results: int = 10):
+    """List Gmail messages matching the query."""
+    return list_emails(query, max_results)
+
+@app.tool()
+def mcp_extract_job_urls(email_id: str):
+    """Extract LinkedIn job URLs from a specific email."""
+    return extract_job_urls(email_id)
+
+@app.tool()
+def mcp_get_email_content(email_id: str):
+    """Get full content of an email."""
+    return get_email_content(email_id)
+
+@app.tool()
+def mcp_label_email(email_id: str, label: str):
+    """Apply a label to a Gmail message."""
+    return label_email(email_id, label)
+
+@app.tool()
+def mcp_get_job_details_from_email(email_id: str):
+    """Extract job URLs from email and scrape complete job details."""
+    return get_job_details_from_email(email_id) 

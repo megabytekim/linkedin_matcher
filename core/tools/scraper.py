@@ -1,15 +1,12 @@
 """
-MCP Tools for LinkedIn Job Scraping
+LinkedIn Scraper Tools for LinkedIn Job Scraper
 
-This module contains pure Python functions for LinkedIn scraping:
-- scrape_job: Scrape a single LinkedIn job
-- scrape_multiple_jobs: Batch scrape multiple job URLs
-- convert_to_guest_url: Convert LinkedIn URLs to guest URLs
-- validate_linkedin_url: Validate LinkedIn job URLs
-- get_job_summary: Get quick job overview
+Pure functions for LinkedIn scraping operations that are registered with the main MCP server.
+No FastMCP instance is created here - tools are registered on the main app.
 """
 
 from scraper_module.job_scraper import JobScraper
+from core.server_app import app
 
 async def scrape_job_async(url: str, max_content_length: int = 2000):
     """
@@ -90,7 +87,7 @@ def convert_to_guest_url(url: str):
         Guest URL string that can be accessed without LinkedIn login
     """
     scraper = JobScraper()
-    return scraper.convert_to_guest_url(url)
+    return scraper._convert_to_guest_url(url)
 
 def validate_linkedin_url(url: str):
     """
@@ -103,7 +100,7 @@ def validate_linkedin_url(url: str):
         True if valid LinkedIn job URL, False otherwise
     """
     scraper = JobScraper()
-    return scraper.validate_url(url)
+    return scraper.validate_linkedin_url(url)
 
 def get_job_summary(url: str):
     """
@@ -119,4 +116,30 @@ def get_job_summary(url: str):
     guest_url = convert_to_guest_url(url)
     if guest_url:
         return scrape_job(guest_url, max_content_length=500)
-    return None 
+    return None
+
+# Register tools with the main MCP server
+@app.tool()
+def mcp_scrape_job(url: str, max_content_length: int = 2000):
+    """Scrape a single LinkedIn job posting."""
+    return scrape_job(url, max_content_length)
+
+@app.tool()
+def mcp_scrape_multiple_jobs(urls: list[str], max_content_length: int = 1500):
+    """Scrape multiple LinkedIn job postings with rate limiting."""
+    return scrape_multiple_jobs(urls, max_content_length)
+
+@app.tool()
+def mcp_convert_to_guest_url(url: str):
+    """Convert a LinkedIn job URL to guest URL (viewable without login)."""
+    return convert_to_guest_url(url)
+
+@app.tool()
+def mcp_validate_linkedin_url(url: str):
+    """Validate if a URL is a valid LinkedIn job URL."""
+    return validate_linkedin_url(url)
+
+@app.tool()
+def mcp_get_job_summary(url: str):
+    """Get quick summary of job posting (title, company, location only)."""
+    return get_job_summary(url) 
