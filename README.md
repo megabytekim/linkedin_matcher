@@ -1,5 +1,10 @@
 # 🔍 LinkedIn 채용공고 스크래퍼
 
+[![CI/CD Status](https://github.com/USERNAME/linkedin_matcher/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/USERNAME/linkedin_matcher/actions)
+[![Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](https://github.com/USERNAME/linkedin_matcher/releases/tag/v1.0.0)
+[![Python](https://img.shields.io/badge/python-3.10+-green.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
 Gmail에서 LinkedIn 채용공고를 자동으로 찾아서 스크래핑하는 AI 어시스턴트 도구입니다.
 
 ## ✨ 주요 기능
