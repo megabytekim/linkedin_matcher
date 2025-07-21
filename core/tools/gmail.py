@@ -11,7 +11,7 @@ from core.server_app import app
 
 # Direct MCP tools without unnecessary wrapper layers
 @app.tool()
-async def list_emails(query: str = "from:linkedin.com", max_results: int = 10):
+async def list_emails(query: str = "", max_results: int = 10):
     """
     List Gmail messages matching the query.
     

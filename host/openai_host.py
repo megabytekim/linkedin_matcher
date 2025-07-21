@@ -59,6 +59,10 @@ class OpenAILLMHost:
         self.tool_call_log = []
         self.tool_call_counter = 0
         
+        self.prompt_counter = 0
+        self.last_prompt_tool_log = []
+        self.last_prompt_scraped_jobs = {}
+        
         # Initialize MCP client
         self._init_mcp_client()
         
@@ -229,7 +233,8 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                         "properties": {
                             "query": {
                                 "type": "string",
-                                "description": "Gmail search query (e.g., 'from:linkedin.com data science')"
+                                "description": "Gmail search query (e.g., 'from:linkedin.com data science')",
+                                "default": ""
                             },
                             "max_results": {
                                 "type": "integer",
@@ -432,6 +437,9 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
     
     async def chat(self, user_message: str) -> str:
         """Process a user message through OpenAI GPT-4 with tool access."""
+        self.prompt_counter += 1
+        self.last_prompt_tool_log = []
+        self.last_prompt_scraped_jobs = {}
         try:
             # Add user message to conversation
             messages = [
@@ -473,6 +481,14 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                         "name": function_name,
                         "content": json.dumps(result, default=str)
                     })
+                    # Track tool log for this prompt
+                    if self.tool_call_log:
+                        self.last_prompt_tool_log.append(self.tool_call_log[-1])
+                    # Track scraped jobs for this prompt
+                    if function_name == "scrape_job" and result:
+                        url = function_args.get("url")
+                        if url:
+                            self.last_prompt_scraped_jobs[url] = result
                 
                 # Get final response with tool results
                 final_messages = messages + [
@@ -496,6 +512,9 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                 {"role": "user", "content": user_message},
                 {"role": "assistant", "content": final_content}
             ])
+            
+            # Per-prompt logging
+            self.save_per_prompt_logs(user_message, final_content)
             
             # Keep conversation history manageable
             if len(self.conversation_history) > 20:
@@ -625,6 +644,25 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
         if hasattr(self, 'mcp_client') and self._mcp_client_started:
             # Note: Can't use async in __del__, so this is just a warning
             print("⚠️  MCP client was not properly cleaned up. Use await host.cleanup()")
+
+    def save_per_prompt_logs(self, user_message, assistant_message):
+        """Save logs for this prompt under host/log/{N}/"""
+        import os
+        prompt_dir = Path(f"host/log/{self.prompt_counter}")
+        prompt_dir.mkdir(parents=True, exist_ok=True)
+        # Save conversation for this prompt
+        with open(prompt_dir / "conversation.json", "w", encoding="utf-8") as f:
+            json.dump([
+                {"role": "user", "content": user_message},
+                {"role": "assistant", "content": assistant_message}
+            ], f, indent=2, ensure_ascii=False)
+        # Save tool calls for this prompt
+        with open(prompt_dir / "tool_calls.json", "w", encoding="utf-8") as f:
+            json.dump(self.last_prompt_tool_log, f, indent=2, ensure_ascii=False)
+        # Save scraped jobs for this prompt
+        with open(prompt_dir / "scraped_jobs.json", "w", encoding="utf-8") as f:
+            json.dump(self.last_prompt_scraped_jobs, f, indent=2, ensure_ascii=False)
+        print(f"🗂️  Saved per-prompt logs to {prompt_dir}/")
 
 
 async def main():
