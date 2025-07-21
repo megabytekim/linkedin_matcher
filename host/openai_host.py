@@ -124,6 +124,12 @@ CRITICAL DISPLAY GUIDELINES:
    - Don't summarize or reformat the original data
    - Include ALL fields returned by the scraper (company, title, description, requirements, etc.)
    - Use clear formatting but preserve original content
+   - **CRITICAL**: Use ```json blocks to display raw data when showing scraped results
+   - **NEVER SUMMARIZE** job descriptions - show them in full
+
+7. **DATA ACCESS COMMANDS**: Users can also use these commands:
+   - "raw data" or "원본 데이터" - Show complete scraped data without formatting
+   - "save logs" or "로그 저장" - Save all logs to files immediately
 
 IMPORTANT WORKFLOW GUIDELINES:
 1. When asked to find and scrape jobs, follow this exact sequence:
@@ -340,7 +346,9 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                 'duration_seconds': duration,
                 'success': True,
                 'result_type': type(processed_result).__name__,
-                'result_size': len(str(processed_result)) if processed_result else 0
+                'result_size': len(str(processed_result)) if processed_result else 0,
+                'result_preview': str(processed_result)[:500] + "..." if processed_result and len(str(processed_result)) > 500 else processed_result,
+                'full_result': processed_result  # Include full result for detailed analysis
             }
             self.tool_call_log.append(log_entry)
             
@@ -524,6 +532,48 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
         except Exception as e:
             print(f"❌ Error saving tool call log: {e}")
     
+    def save_scraped_jobs(self):
+        """Save scraped job results to a separate file for easy viewing."""
+        try:
+            if not self.session_memory['scraped_jobs']:
+                print("📄 No scraped jobs to save")
+                return
+                
+            scraped_file = Path("host/scraped_jobs.json")
+            with open(scraped_file, 'w', encoding='utf-8') as f:
+                json.dump(self.session_memory['scraped_jobs'], f, indent=2, ensure_ascii=False)
+            print(f"💼 Scraped jobs saved to {scraped_file} ({len(self.session_memory['scraped_jobs'])} jobs)")
+        except Exception as e:
+            print(f"❌ Error saving scraped jobs: {e}")
+    
+    def save_detailed_logs(self):
+        """Save comprehensive logs including execution timeline."""
+        try:
+            # Create detailed execution timeline
+            timeline = []
+            for entry in self.tool_call_log:
+                timeline_entry = {
+                    'order': entry['order'],
+                    'tool': entry['tool_name'],
+                    'duration': f"{entry['duration_seconds']:.2f}s",
+                    'status': '✅ Success' if entry['success'] else '❌ Failed',
+                    'timestamp': entry['start_time'],
+                    'args': entry['arguments'],
+                    'result_size': entry['result_size']
+                }
+                if not entry['success']:
+                    timeline_entry['error'] = entry['error']
+                timeline.append(timeline_entry)
+            
+            # Save timeline
+            timeline_file = Path("host/execution_timeline.json")
+            with open(timeline_file, 'w', encoding='utf-8') as f:
+                json.dump(timeline, f, indent=2, ensure_ascii=False)
+            print(f"⏱️  Execution timeline saved to {timeline_file}")
+            
+        except Exception as e:
+            print(f"❌ Error saving detailed logs: {e}")
+    
     def get_tool_call_summary(self) -> str:
         """Get a summary of tool calls made in this session."""
         if not self.tool_call_log:
@@ -610,6 +660,8 @@ async def main():
     print("📋 Commands:")
     print("   • Type 'memory' or '상태' to see session memory status")
     print("   • Type 'tools' or 'log' or '로그' to see tool call history")
+    print("   • Type 'raw data' or '원본' to see complete scraped job data")
+    print("   • Type 'save logs' or '로그 저장' to save all logs immediately")
     print("   • Type 'quit' to exit and save all logs\n")
     
     while True:
@@ -626,6 +678,8 @@ async def main():
                 host.save_conversation()
                 host.save_session_memory()
                 host.save_tool_call_log()
+                host.save_scraped_jobs() # Added this line
+                host.save_detailed_logs() # Added this line
                 await host.cleanup()
                 break
             
@@ -641,6 +695,24 @@ async def main():
                 print(f"\n{tool_summary}")
                 continue
             
+            # Check for immediate log saving
+            if user_input.lower() in ['save logs', '로그 저장', 'save']:
+                host.save_tool_call_log()
+                host.save_scraped_jobs()
+                host.save_detailed_logs()
+                continue
+            
+            # Check for raw data display
+            if user_input.lower() in ['raw data', '원본 데이터', 'raw', '원본']:
+                if host.session_memory['scraped_jobs']:
+                    print("\n📄 Raw Scraped Job Data:")
+                    for url, job_data in host.session_memory['scraped_jobs'].items():
+                        print(f"\n🔗 {url}:")
+                        print(f"```json\n{json.dumps(job_data, indent=2, ensure_ascii=False)}\n```")
+                else:
+                    print("\n📄 No scraped job data available")
+                continue
+            
             # Process with OpenAI + Tools
             print("\n🤔 AI is thinking and using tools...")
             response = await host.chat(user_input)
@@ -653,6 +725,8 @@ async def main():
             host.save_conversation()
             host.save_session_memory()
             host.save_tool_call_log()
+            host.save_scraped_jobs() # Added this line
+            host.save_detailed_logs() # Added this line
             await host.cleanup()
             break
         except Exception as e:
