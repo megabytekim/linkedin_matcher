@@ -21,9 +21,8 @@ from scraper_module.tools.gmail_scraper import (
     process_linkedin_emails
 )
 
-
 @app.tool()
-def mcp_get_job_details_from_email(email_id: str):
+async def mcp_get_job_details_from_email(email_id: str):
     """
     Extract job URLs from a specific email and scrape complete job details.
     
@@ -33,11 +32,11 @@ def mcp_get_job_details_from_email(email_id: str):
     Returns:
         List of complete job data dictionaries with scraped details
     """
-    return get_job_details_from_email(email_id)
-
+    result = get_job_details_from_email(email_id)
+    return result
 
 @app.tool()
-def mcp_scrape_jobs_from_email_urls(email_id: str, urls: List[str]):
+async def mcp_scrape_jobs_from_email_urls(email_id: str, urls: List[str]):
     """
     Scrape job details from a list of URLs with email context.
     
@@ -48,11 +47,11 @@ def mcp_scrape_jobs_from_email_urls(email_id: str, urls: List[str]):
     Returns:
         List of scraped job data dictionaries
     """
-    return scrape_jobs_from_email_urls(email_id, urls)
-
+    result = scrape_jobs_from_email_urls(email_id, urls)
+    return result
 
 @app.tool()
-def mcp_scrape_jobs_from_url_list(urls: List[str], context: Dict[str, Any] = None):
+async def mcp_scrape_jobs_from_url_list(urls: List[str], context: Dict[str, Any] = None):
     """
     Scrape job details from a list of URLs with optional context.
     
@@ -63,11 +62,11 @@ def mcp_scrape_jobs_from_url_list(urls: List[str], context: Dict[str, Any] = Non
     Returns:
         List of scraped job data dictionaries
     """
-    return scrape_jobs_from_url_list(urls, context)
-
+    result = scrape_jobs_from_url_list(urls, context)
+    return result
 
 @app.tool()
-def mcp_process_linkedin_emails(email_ids: List[str], max_jobs_per_email: int = 5):
+async def mcp_process_linkedin_emails(email_ids: List[str], max_jobs_per_email: int = 5):
     """
     Process multiple LinkedIn emails and extract all job details.
     
@@ -78,4 +77,5 @@ def mcp_process_linkedin_emails(email_ids: List[str], max_jobs_per_email: int = 
     Returns:
         Dictionary with processed results summary and job details
     """
-    return process_linkedin_emails(email_ids, max_jobs_per_email) 
+    result = process_linkedin_emails(email_ids, max_jobs_per_email)
+    return result 

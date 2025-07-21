@@ -14,50 +14,10 @@ import core.tools.gmail
 import core.tools.scraper
 import core.tools.scraper_gmail
 
-# Add a workflow tool
-@app.tool()
-def full_workflow(query: str = "from:linkedin.com", max_emails: int = 5, max_jobs: int = 10):
-    """
-    Complete workflow: Search emails → Extract URLs → Scrape jobs.
-    
-    Args:
-        query: Gmail search query for finding job emails
-        max_emails: Maximum emails to process
-        max_jobs: Maximum jobs to scrape
-        
-    Returns:
-        Dictionary with emails found, URLs extracted, and jobs scraped
-    """
-    from core.tools.gmail import list_emails, extract_job_urls
-    from core.tools.scraper import scrape_job
-    
-    # Step 1: Find emails
-    emails = list_emails(query, max_emails)
-    
-    # Step 2: Extract URLs from all emails
-    all_urls = []
-    for email in emails[:max_emails]:
-        urls = extract_job_urls(email['id'])
-        all_urls.extend([url_info['url'] for url_info in urls])
-    
-    # Step 3: Scrape jobs (limit to max_jobs)
-    urls_to_scrape = all_urls[:max_jobs]
-    job_results = []
-    for url in urls_to_scrape:
-        try:
-            job_data = scrape_job(url)
-            if job_data:
-                job_results.append(job_data)
-        except Exception as e:
-            print(f"Failed to scrape {url}: {e}")
-    
-    return {
-        'emails_found': len(emails),
-        'urls_extracted': len(all_urls),
-        'jobs_scraped': len(job_results),
-        'job_data': job_results,
-        'summary': f"Found {len(emails)} emails, extracted {len(all_urls)} URLs, scraped {len(job_results)} jobs"
-    }
+# The full_workflow functionality is now properly handled by:
+# - mcp_process_linkedin_emails (for complete email processing)
+# - mcp_get_job_details_from_email (for single email workflow)
+# - Individual tools can be chained by the LLM with working memory
 
 if __name__ == "__main__":
     import sys
@@ -76,7 +36,7 @@ if __name__ == "__main__":
     logger.info("🚀 LinkedIn Job Scraper MCP Server Starting...")
     logger.info("📧 Gmail Tools: mcp_list_emails, mcp_extract_job_urls, mcp_get_message_content, mcp_add_label")
     logger.info("🌐 Scraper Tools: mcp_scrape_job, mcp_scrape_multiple_jobs, mcp_convert_to_guest_url, mcp_validate_linkedin_url, mcp_get_job_summary")
-    logger.info("🔄 Workflow Tools: full_workflow")
+    logger.info("🔄 Combined Tools: mcp_get_job_details_from_email, mcp_scrape_jobs_from_email_urls, mcp_scrape_jobs_from_url_list, mcp_process_linkedin_emails")
     logger.info("📡 Running in stdio mode for MCP client communication")
     
     # Run the MCP server in stdio mode

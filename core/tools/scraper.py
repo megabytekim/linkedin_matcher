@@ -2,7 +2,7 @@
 LinkedIn Scraper Tools for LinkedIn Job Scraper
 
 Pure functions for LinkedIn scraping operations that are registered with the main MCP server.
-No FastMCP instance is created here - tools are registered on the main app.
+These tools focus on pure web scraping functionality.
 """
 
 from scraper_module.job_scraper import JobScraper
@@ -118,28 +118,43 @@ def get_job_summary(url: str):
         return scrape_job(guest_url, max_content_length=500)
     return None
 
-# Register tools with the main MCP server
+# Register tools with the main MCP server using FastMCP style
 @app.tool()
-def mcp_scrape_job(url: str, max_content_length: int = 2000):
+async def mcp_scrape_job(url: str, max_content_length: int = 2000):
     """Scrape a single LinkedIn job posting."""
-    return scrape_job(url, max_content_length)
+    result = await scrape_job_async(url, max_content_length)
+    return result
 
 @app.tool()
-def mcp_scrape_multiple_jobs(urls: list[str], max_content_length: int = 1500):
+async def mcp_scrape_multiple_jobs(urls: list[str], max_content_length: int = 1500):
     """Scrape multiple LinkedIn job postings with rate limiting."""
-    return scrape_multiple_jobs(urls, max_content_length)
+    results = []
+    for url in urls:
+        result = await scrape_job_async(url, max_content_length)
+        if result:
+            results.append(result)
+    
+    return results
 
 @app.tool()
-def mcp_convert_to_guest_url(url: str):
+async def mcp_convert_to_guest_url(url: str):
     """Convert a LinkedIn job URL to guest URL (viewable without login)."""
-    return convert_to_guest_url(url)
+    guest_url = convert_to_guest_url(url)
+    return guest_url
 
 @app.tool()
-def mcp_validate_linkedin_url(url: str):
+async def mcp_validate_linkedin_url(url: str):
     """Validate if a URL is a valid LinkedIn job URL."""
-    return validate_linkedin_url(url)
+    is_valid = validate_linkedin_url(url)
+    return is_valid
 
 @app.tool()
-def mcp_get_job_summary(url: str):
+async def mcp_get_job_summary(url: str):
     """Get quick summary of job posting (title, company, location only)."""
-    return get_job_summary(url) 
+    # Convert to guest URL first
+    guest_url = convert_to_guest_url(url)
+    if not guest_url:
+        return None
+    
+    summary = await scrape_job_async(guest_url, max_content_length=500)
+    return summary 

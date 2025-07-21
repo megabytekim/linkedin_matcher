@@ -91,11 +91,14 @@ class OpenAILLMHost:
         """Initialize local function imports for direct tool calls."""
         from core.tools.gmail import (
             list_emails, extract_job_urls, get_message_content,
-            add_label, get_job_details_from_email
+            add_label
         )
         from core.tools.scraper import (
             scrape_job, scrape_job_async, scrape_multiple_jobs, convert_to_guest_url,
             validate_linkedin_url, get_job_summary
+        )
+        from scraper_module.tools.gmail_scraper import (
+            get_job_details_from_email
         )
         
         # Define local tools
@@ -452,7 +455,7 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
             "list_emails": "mcp_list_emails",
             "extract_job_urls": "mcp_extract_job_urls", 
             "scrape_job": "mcp_scrape_job",
-            "auto_job_search_workflow": "full_workflow"
+            "auto_job_search_workflow": "mcp_process_linkedin_emails"  # Use the proper combined tool
         }
         return mapping.get(openai_function_name, openai_function_name)
     

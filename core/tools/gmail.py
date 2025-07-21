@@ -2,8 +2,6 @@
 Gmail Tools for LinkedIn Job Scraper
 
 Pure functions for Gmail operations that are registered with the main MCP server.
-No FastMCP instance is created here - tools are registered on the main app.
-
 These tools focus on pure data extraction from Gmail without scraping dependencies.
 """
 
@@ -64,26 +62,30 @@ def add_label(email_id: str, label: str):
     gmail = GmailAPI()
     return gmail.add_label(email_id, label)
 
-# Register tools with the main MCP server
+# Register tools with the main MCP server using FastMCP style
 @app.tool()
-def mcp_list_emails(query: str = "from:linkedin.com", max_results: int = 10):
+async def mcp_list_emails(query: str = "from:linkedin.com", max_results: int = 10):
     """List Gmail messages matching the query."""
     emails = list_emails(query, max_results)
+    
     import json
     # 한글이 깨지지 않도록 ensure_ascii=False로 직렬화
     return [json.dumps(email, ensure_ascii=False) for email in emails]
 
 @app.tool()
-def mcp_extract_job_urls(email_id: str):
+async def mcp_extract_job_urls(email_id: str):
     """Extract LinkedIn job URLs from a specific email."""
-    return extract_job_urls(email_id)
+    urls = extract_job_urls(email_id)
+    return urls
 
 @app.tool()
-def mcp_get_message_content(email_id: str):
+async def mcp_get_message_content(email_id: str):
     """Get full content of an email."""
-    return get_message_content(email_id)
+    content = get_message_content(email_id)
+    return content
 
 @app.tool()
-def mcp_add_label(email_id: str, label: str):
+async def mcp_add_label(email_id: str, label: str):
     """Apply a label to a Gmail message."""
-    return add_label(email_id, label) 
+    result = add_label(email_id, label)
+    return result 
