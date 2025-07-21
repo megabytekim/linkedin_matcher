@@ -59,11 +59,30 @@ def full_workflow(query: str = "from:linkedin.com", max_emails: int = 5, max_job
     }
 
 if __name__ == "__main__":
-    # Run the MCP server
-    print("🚀 LinkedIn Job Scraper MCP Server Starting...")
-    print("=" * 60)
-    print("📧 Gmail Tools: mcp_list_emails, mcp_extract_job_urls, mcp_get_message_content, mcp_add_label")
-    print("🌐 Scraper Tools: mcp_scrape_job, mcp_scrape_multiple_jobs, mcp_convert_to_guest_url, mcp_validate_linkedin_url, mcp_get_job_summary")
-    print("=" * 60)
+    import sys
+    import logging
     
-    app.run() 
+    # Configure logging for MCP server
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stderr  # Send logs to stderr to avoid interfering with stdio communication
+    )
+    
+    logger = logging.getLogger(__name__)
+    
+    # Log server startup to stderr
+    logger.info("🚀 LinkedIn Job Scraper MCP Server Starting...")
+    logger.info("📧 Gmail Tools: mcp_list_emails, mcp_extract_job_urls, mcp_get_message_content, mcp_add_label")
+    logger.info("🌐 Scraper Tools: mcp_scrape_job, mcp_scrape_multiple_jobs, mcp_convert_to_guest_url, mcp_validate_linkedin_url, mcp_get_job_summary")
+    logger.info("🔄 Workflow Tools: full_workflow")
+    logger.info("📡 Running in stdio mode for MCP client communication")
+    
+    # Run the MCP server in stdio mode
+    try:
+        app.run(transport='stdio')
+    except KeyboardInterrupt:
+        logger.info("🛑 MCP Server stopped by user")
+    except Exception as e:
+        logger.error(f"❌ MCP Server error: {e}")
+        sys.exit(1) 

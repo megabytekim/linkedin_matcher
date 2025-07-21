@@ -57,4 +57,12 @@ coverage.xml
 htmlcov/
 .tox/
 *.tar.gz
-linkedin-matcher-*.tar.gz 
+linkedin-matcher-*.tar.gz
+
+# Generated runtime files
+host/openai_conversation_history.json
+host/openai_session_memory.json
+host/*.json
+
+# MCP runtime files
+mcp_config.json 

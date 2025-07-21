@@ -73,11 +73,19 @@ class OpenAILLMHost:
     
     def _init_mcp_client(self):
         """Initialize MCP client for network-based tool calls."""
-        # TODO: Implement MCP client connection
-        # from mcp import Client
-        # self.mcp_client = Client("http://localhost:3333")
+        from .mcp_client import MCPClient
+        
+        # Initialize MCP client with server command
+        self.mcp_client = MCPClient(
+            server_command=["python", "core/serve.py"],
+            cwd=str(Path(__file__).parent.parent)  # Project root
+        )
+        
         print("📡 MCP Client mode (network boundary)")
         self.tool_mode = "mcp_client"
+        
+        # Note: MCP client will be started when first tool call is made
+        self._mcp_client_started = False
     
     def _init_local_tools(self):
         """Initialize local function imports for direct tool calls."""
@@ -86,18 +94,19 @@ class OpenAILLMHost:
             add_label, get_job_details_from_email
         )
         from core.tools.scraper import (
-            scrape_job, scrape_multiple_jobs, convert_to_guest_url,
+            scrape_job, scrape_job_async, scrape_multiple_jobs, convert_to_guest_url,
             validate_linkedin_url, get_job_summary
         )
         
-        # Define MCP tools
-        self.mcp_tools = {
+        # Define local tools
+        self.local_tools = {
             'list_emails': list_emails,
             'extract_job_urls': extract_job_urls,
             'get_message_content': get_message_content,
             'add_label': add_label,
             'get_job_details_from_email': get_job_details_from_email,
             'scrape_job': scrape_job,
+            'scrape_job_async': scrape_job_async,
             'scrape_multiple_jobs': scrape_multiple_jobs,
             'convert_to_guest_url': convert_to_guest_url,
             'validate_linkedin_url': validate_linkedin_url,
@@ -272,9 +281,36 @@ Be conversational, helpful, and proactive in suggesting next steps."""
             print(f"🔧 Executing tool: {tool_name} with args: {kwargs}")
             
             if self.use_mcp_client:
-                # TODO: Implement MCP client calls
-                # return await self.mcp_client.call_tool(tool_name, **kwargs)
-                return f"MCP client call to {tool_name} (not implemented yet)"
+                # Start MCP client if not already started
+                if not self._mcp_client_started:
+                    print("🚀 Starting MCP client...")
+                    await self.mcp_client.start()
+                    self._mcp_client_started = True
+                
+                # Map OpenAI function names to MCP tool names
+                mcp_tool_name = self._map_to_mcp_tool_name(tool_name)
+                
+                # Call tool via MCP client
+                result = await self.mcp_client.call_tool(mcp_tool_name, kwargs)
+                
+                # Process MCP result format
+                if isinstance(result, dict) and 'content' in result:
+                    # MCP returns structured content, extract text
+                    content_items = result.get('content', [])
+                    if content_items and isinstance(content_items, list):
+                        # Extract JSON from first text content
+                        for item in content_items:
+                            if item.get('type') == 'text':
+                                text_content = item.get('text', '{}')
+                                try:
+                                    parsed_result = json.loads(text_content)
+                                    return parsed_result
+                                except json.JSONDecodeError:
+                                    return text_content
+                        return content_items
+                    return result.get('content', {})
+                
+                return result
             else:
                 # Use local functions
                 if tool_name == "list_emails":
@@ -309,6 +345,17 @@ Be conversational, helpful, and proactive in suggesting next steps."""
         except Exception as e:
             print(f"❌ Error executing tool {tool_name}: {e}")
             return f"Error: {str(e)}"
+    
+    def _map_to_mcp_tool_name(self, openai_function_name: str) -> str:
+        """Map OpenAI function names to MCP tool names."""
+        # OpenAI function names → MCP tool names
+        mapping = {
+            "list_emails": "mcp_list_emails",
+            "extract_job_urls": "mcp_extract_job_urls", 
+            "scrape_job": "mcp_scrape_job",
+            "auto_job_search_workflow": "full_workflow"
+        }
+        return mapping.get(openai_function_name, openai_function_name)
     
     async def _execute_auto_workflow(self, query: str, max_emails: int, max_jobs: int) -> dict:
         """Execute complete automated job search workflow."""
@@ -490,6 +537,20 @@ Be conversational, helpful, and proactive in suggesting next steps."""
             print(f"💾 Session memory saved to {memory_file}")
         except Exception as e:
             print(f"❌ Error saving session memory: {e}")
+
+    async def cleanup(self):
+        """Clean up resources, especially MCP client."""
+        if self.use_mcp_client and hasattr(self, 'mcp_client') and self._mcp_client_started:
+            print("🧹 Cleaning up MCP client...")
+            await self.mcp_client.stop()
+            self._mcp_client_started = False
+            print("✅ MCP client cleanup complete")
+    
+    def __del__(self):
+        """Destructor to ensure cleanup."""
+        if self.use_mcp_client and hasattr(self, 'mcp_client') and self._mcp_client_started:
+            # Note: Can't use async in __del__, so this is just a warning
+            print("⚠️  MCP client was not properly cleaned up. Use await host.cleanup()")
 
 
 async def main():
