@@ -112,10 +112,17 @@ linkedin_matcher/
 │   ├── serve.py              # MCP Server launcher
 │   ├── server_app.py         # FastMCP application
 │   └── tools/
-│       ├── gmail.py          # Gmail API integration
-│       └── scraper.py        # LinkedIn scraping tools
-├── scraper_module/           # Legacy scraper (maintained for compatibility)
-├── gmail_module/             # Legacy Gmail module (maintained for compatibility)
+│       ├── gmail.py          # Pure Gmail data extraction tools
+│       ├── scraper.py        # Pure LinkedIn scraping tools
+│       └── scraper_gmail.py  # Combined scraper+gmail integration tools
+├── scraper_module/           # Scraper components
+│   ├── job_scraper.py        # Core scraping functionality
+│   └── tools/                # Scraper integration tools
+│       ├── __init__.py
+│       └── gmail_scraper.py  # Gmail+scraper workflows
+├── gmail_module/             # Gmail components
+│   ├── gmail_api.py          # Gmail API interface
+│   └── tests/                # Gmail-specific tests
 ├── test_mcp_integration.py   # Integration tests
 ├── run_tests.py              # Test runner
 └── requirements.txt          # Dependencies
@@ -172,13 +179,54 @@ OPENAI_MODEL=gpt-4o             # Optional (default: gpt-4o)
 ```
 
 ### Gmail API Setup
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a project and enable Gmail API
-3. Create credentials (OAuth 2.0)
-4. Download `credentials.json` to project root
-5. Run the app - it will prompt for authorization
+1. Visit [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select existing
+3. Enable Gmail API
+4. Create credentials (OAuth 2.0)
+5. Download `credentials.json` to project root
 
-## 🚀 CI/CD
+## 🛠️ Tools Architecture
+
+### Pure Data Extraction Tools
+**Gmail Tools** (`core/tools/gmail.py`)
+- `mcp_list_emails` - Search and list Gmail messages
+- `mcp_extract_job_urls` - Extract LinkedIn URLs from emails
+- `mcp_get_message_content` - Get full email content
+- `mcp_add_label` - Apply labels to emails
+
+### Pure Scraping Tools  
+**Scraper Tools** (`core/tools/scraper.py`)
+- `mcp_scrape_job` - Scrape single LinkedIn job posting
+- `mcp_scrape_multiple_jobs` - Batch scrape multiple jobs
+- `mcp_validate_linkedin_url` - Validate LinkedIn job URLs
+- `mcp_convert_to_guest_url` - Convert to guest URLs
+- `mcp_get_job_summary` - Quick job summary extraction
+
+### Integrated Workflow Tools
+**Scraper+Gmail Tools** (`core/tools/scraper_gmail.py`)
+- `mcp_get_job_details_from_email` - Extract URLs from email + scrape
+- `mcp_scrape_jobs_from_email_urls` - Scrape jobs with email context
+- `mcp_scrape_jobs_from_url_list` - Batch scrape with optional context
+- `mcp_process_linkedin_emails` - Full email workflow processing
+
+### How LLM Uses Tools
+1. **Data Extraction**: `list_emails` → Extract email data
+2. **URL Extraction**: `extract_job_urls` → Get LinkedIn URLs  
+3. **Web Scraping**: `scrape_job` → Get job details
+4. **Working Memory**: Results stored for next tool calls
+5. **Context Building**: LLM combines results intelligently
+
+Example workflow:
+```
+User: "Find recent ML jobs and get details"
+│
+├─ list_emails(query="machine learning", max_results=5)
+├─ extract_job_urls(email_id) for each email  
+├─ scrape_job(url) for each URL
+└─ Present combined results to user
+```
+
+## 🔧 CI/CD
 
 The project includes GitHub Actions for:
 - ✅ Unit testing

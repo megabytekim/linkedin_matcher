@@ -12,6 +12,7 @@ from core.server_app import app
 # Import all tool modules to register their tools
 import core.tools.gmail
 import core.tools.scraper
+import core.tools.scraper_gmail
 
 # Add a workflow tool
 @app.tool()
