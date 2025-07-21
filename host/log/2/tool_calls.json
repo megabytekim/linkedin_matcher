@@ -1,0 +1,54 @@
+[
+  {
+    "order": 2,
+    "tool_name": "list_emails",
+    "arguments": {
+      "query": "from:linkedin.com",
+      "max_results": 5
+    },
+    "start_time": "2025-07-21T23:37:37.188624",
+    "end_time": "2025-07-21T23:37:39.720215",
+    "duration_seconds": 2.531591,
+    "success": true,
+    "result_type": "list",
+    "result_size": 2166,
+    "result_preview": "[{'id': '1982bc5ac51ec213', 'subject': '5 new jobs for “software”', 'from': 'LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>', 'date': 'Mon, 21 Jul 2025 06:57:09 +0000 (UTC)', 'snippet': 'View jobs in South Korea ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏'}, {'id': '1982b57d33701719', 'subject': '“machine learning engineer”: CLO Virtual Fashion - Machine Learn...",
+    "full_result": [
+      {
+        "id": "1982bc5ac51ec213",
+        "subject": "5 new jobs for “software”",
+        "from": "LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>",
+        "date": "Mon, 21 Jul 2025 06:57:09 +0000 (UTC)",
+        "snippet": "View jobs in South Korea ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏"
+      },
+      {
+        "id": "1982b57d33701719",
+        "subject": "“machine learning engineer”: CLO Virtual Fashion - Machine Learning Engineer, R&D and more",
+        "from": "LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>",
+        "date": "Mon, 21 Jul 2025 04:57:08 +0000 (UTC)",
+        "snippet": "CLO Virtual Fashion Machine Learning Engineer, R&amp;D: 클로버추얼패션 (CLO Virtual Fashion)은 3D 의상 시뮬레이션 알고리즘을… ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏"
+      },
+      {
+        "id": "1982aea0a583afa5",
+        "subject": "“data scientist”: Moloco - Senior Data Scientist, Growth Analytics (Japanese-Speaking)",
+        "from": "LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>",
+        "date": "Mon, 21 Jul 2025 02:57:14 +0000 (UTC)",
+        "snippet": "Moloco Senior Data Scientist, Growth Analytics (Japanese-Speaking): About Moloco:Moloco is a machine learning company… ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏"
+      },
+      {
+        "id": "1982a829a4102c4b",
+        "subject": "Message replied: 영우님, 쿠팡과 함께 커리어의 다음 단계를 설계해보세요!",
+        "from": "Jacob Chung <hit-reply@linkedin.com>",
+        "date": "Mon, 21 Jul 2025 01:04:18 +0000 (UTC)",
+        "snippet": "안녕하세요 영우님, 이력서 전달 감사드립니다.빠르게 리뷰 진행하여, 인터뷰 프로세스 진행될... ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏"
+      },
+      {
+        "id": "1982a7c17e62b519",
+        "subject": "“소프트웨어 엔지니어”: CLO Virtual Fashion - Machine Learning Engineer, R&D and more",
+        "from": "LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>",
+        "date": "Mon, 21 Jul 2025 00:57:10 +0000 (UTC)",
+        "snippet": "CLO Virtual Fashion Machine Learning Engineer, R&amp;D: 클로버추얼패션 (CLO Virtual Fashion)은 3D 의상 시뮬레이션 알고리즘을… ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏ ͏"
+      }
+    ]
+  }
+]

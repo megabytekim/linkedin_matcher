@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "linkedin-job-scraper": {
+      "command": "python",
+      "args": [
+        "-m",
+        "core.serve"
+      ],
+      "cwd": "/Users/michael/cursor_projects/linkedin_matcher",
+      "env": {
+        "PYTHONPATH": "/Users/michael/cursor_projects/linkedin_matcher"
+      }
+    }
+  }
+} 

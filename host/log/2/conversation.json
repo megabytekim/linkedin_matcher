@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "음 최근에 채용공고 5개만 알려줘 링크드인"
+  },
+  {
+    "role": "assistant",
+    "content": "이제 링크드인에서 수신된 채용공고 이메일 5개를 찾았어요. 아래는 그 목록입니다:\n\n1. **\"5 new jobs for “software”\"**  \n   날짜: 2025년 7월 21일 06:57  \n   이메일 제목: 5 new jobs for “software”  \n   보낸이: LinkedIn Job Alerts\n\n2. **\"machine learning engineer: CLO Virtual Fashion - Machine Learning Engineer, R&D and more\"**  \n   날짜: 2025년 7월 21일 04:57  \n   이메일 제목: “machine learning engineer”: CLO Virtual Fashion - Machine Learning Engineer, R&D and more  \n   보낸이: LinkedIn Job Alerts\n\n3. **\"data scientist: Moloco - Senior Data Scientist, Growth Analytics (Japanese-Speaking)\"**  \n   날짜: 2025년 7월 21일 02:57  \n   이메일 제목: “data scientist”: Moloco - Senior Data Scientist, Growth Analytics (Japanese-Speaking)  \n   보낸이: LinkedIn Job Alerts\n\n4. **\"Message replied: 유원님, 케이플과 함께 새로운 단계를 설정해보세요!\"**  \n   날짜: 2025년 7월 21일 01:04  \n   이메일 제목: 메시지 답장  \n   보낸이: Jacob Chung (LinkedIn)\n\n5. **\"소프트웍 윈유네엑스티비: CLO Virtual Fashion - Machine Learning Engineer, R&D and more\"**  \n   날짜: 2025년 7월 21일 00:57  \n   이메일 제목: “소프트웍 윈유네엑스티비” (내용 일부 변경된 제목)  \n   보낸이: LinkedIn Job Alerts\n\n이메일에서 채용공고 링크를 추출해서 보여드릴 수 있는데, 원하시면 진행해 드릴게요!"
+  }
+]

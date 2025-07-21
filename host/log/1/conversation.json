@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "최근 수신한 이메일 5개만 알려"
+  },
+  {
+    "role": "assistant",
+    "content": "최근 수신한 이메일 5개를 보여드리겠습니다:\n\n1. **\"Customer Segmentation with Python + AI\"**  \n   보낸이: Matt Dancho <mdancho@business-science.io>  \n   날짜: 2025년 7월 21일 14:06 (GMT)  \n   미리보기: This is what's happening and how to prepare ... (내용 일부)\n\n2. **\"성게소식 79호｜SKKU Newsletter Vol.79 (2025 SUMMER)\"**  \n   보낸이: 성게공대학 홍보팀 <yjee0946@skku.edu>  \n   날짜: 2025년 7월 21일 16:49 (한국시간)  \n   미리보기: <성게소식> 79호가 발간되었습니다. ... (내용 일부)\n\n3. **\"광고)[갤럭시 Z 폴드7•Z 플립7] 하루 남은 데일리 스토리\"**  \n   보낸이: 삼성전자 <samsung@k1.email.samsung.com>  \n   날짜: 2025년 7월 21일 15:59 (한국시간)  \n   미리보기: 울트라를 포함한 다양한 갤럭시 Z 폴드7, Z 플립7을 ... (내용 일부)\n\n4. **\"[퀘Q레터] 호기심을 풀어주는 sam스페셜 신속 난득\"**  \n   보낸이: 교보문고 <noreply@kyobobook.co.kr>  \n   날짜: 2025년 7월 21일 14:25 (한국시간)  \n   미리보기: sam 로고와 퀘Q레터 Outlook 환경에서 열림 ... (내용 일부)\n\n5. **\"Message replied: 유원님, 케이플과 함께 새로운 단계를 설정해보세요!\"**  \n   보낸이: Jacob Chung <hit-reply@linkedin.com>  \n   날짜: 2025년 7월 21일 01:04 (UTC)  \n   미리보기: 안녕하세요 유원님, 이번에 전월 감상드렸습니다. ... (내용 일부)\n\n이상입니다! 추가로 원하시면 더 많은 이메일을 보여드리거나, 특정 이메일에서 링크 추출 또는 관련 작업을 진행할 수 있습니다."
+  }
+]

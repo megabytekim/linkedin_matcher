@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "좋아, 이거 여기서 url 추출해주고, 채용공고 상세정보를 찾아줘 스크래핑으로"
+  },
+  {
+    "role": "assistant",
+    "content": "각 이메일에서 추출한 채용공고 링크입니다:\n\n1. [Job 4270408982](https://www.linkedin.com/comm/jobs/view/4270408982)\n2. [Job 3979785161](https://www.linkedin.com/comm/jobs/view/3979785161)\n3. [Job 4269952787](https://www.linkedin.com/comm/jobs/view/4269952787)\n4. [Job 4243708817](https://www.linkedin.com/comm/jobs/view/4243708817)\n5. [Job 4270412680](https://www.linkedin.com/comm/jobs/view/4270412680)\n6. [Job 3833987312](https://www.linkedin.com/comm/jobs/view/3833987312)\n7. [Job 3979782280](https://www.linkedin.com/comm/jobs/view/3979782280)\n\n이제 각 링크를 이용해 채용공고 상세 정보를 스크래핑하겠습니다. 잠시만 기다려 주세요."
+  }
+]

@@ -1,0 +1,137 @@
+[
+  {
+    "order": 3,
+    "tool_name": "extract_job_urls",
+    "arguments": {
+      "email_id": "1982bc5ac51ec213"
+    },
+    "start_time": "2025-07-21T23:38:16.410065",
+    "end_time": "2025-07-21T23:38:17.454121",
+    "duration_seconds": 1.044056,
+    "success": true,
+    "result_type": "list",
+    "result_size": 470,
+    "result_preview": [
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4270408982",
+        "link_text": "Job 4270408982"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/3979785161",
+        "link_text": "Job 3979785161"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4269952787",
+        "link_text": "Job 4269952787"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4243708817",
+        "link_text": "Job 4243708817"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4270412680",
+        "link_text": "Job 4270412680"
+      }
+    ],
+    "full_result": [
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4270408982",
+        "link_text": "Job 4270408982"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/3979785161",
+        "link_text": "Job 3979785161"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4269952787",
+        "link_text": "Job 4269952787"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4243708817",
+        "link_text": "Job 4243708817"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/4270412680",
+        "link_text": "Job 4270412680"
+      }
+    ]
+  },
+  {
+    "order": 4,
+    "tool_name": "extract_job_urls",
+    "arguments": {
+      "email_id": "1982b57d33701719"
+    },
+    "start_time": "2025-07-21T23:38:17.454217",
+    "end_time": "2025-07-21T23:38:18.573590",
+    "duration_seconds": 1.119373,
+    "success": true,
+    "result_type": "list",
+    "result_size": 188,
+    "result_preview": [
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/3833987312",
+        "link_text": "Job 3833987312"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/3979782280",
+        "link_text": "Job 3979782280"
+      }
+    ],
+    "full_result": [
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/3833987312",
+        "link_text": "Job 3833987312"
+      },
+      {
+        "url": "https://www.linkedin.com/comm/jobs/view/3979782280",
+        "link_text": "Job 3979782280"
+      }
+    ]
+  },
+  {
+    "order": 5,
+    "tool_name": "extract_job_urls",
+    "arguments": {
+      "email_id": "1982b574f86495d3"
+    },
+    "start_time": "2025-07-21T23:38:18.573645",
+    "end_time": "2025-07-21T23:38:19.071164",
+    "duration_seconds": 0.497519,
+    "success": true,
+    "result_type": "list",
+    "result_size": 0,
+    "result_preview": [],
+    "full_result": []
+  },
+  {
+    "order": 6,
+    "tool_name": "extract_job_urls",
+    "arguments": {
+      "email_id": "3b2f2a4b-4b55-4f8a-94e7-9b8f7e2d8f5a"
+    },
+    "start_time": "2025-07-21T23:38:19.071226",
+    "end_time": "2025-07-21T23:38:20.911330",
+    "duration_seconds": 1.840104,
+    "success": true,
+    "result_type": "list",
+    "result_size": 0,
+    "result_preview": [],
+    "full_result": []
+  },
+  {
+    "order": 7,
+    "tool_name": "extract_job_urls",
+    "arguments": {
+      "email_id": "d4f1e2a3-7d9f-4b8e-9f7e-2d8f5a6b7c8d"
+    },
+    "start_time": "2025-07-21T23:38:20.911387",
+    "end_time": "2025-07-21T23:38:22.343270",
+    "duration_seconds": 1.431883,
+    "success": true,
+    "result_type": "list",
+    "result_size": 0,
+    "result_preview": [],
+    "full_result": []
+  }
+]
