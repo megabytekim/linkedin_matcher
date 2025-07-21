@@ -147,6 +147,12 @@ IMPORTANT WORKFLOW GUIDELINES:
 
 7. **CRITICAL**: When using individual tools, always copy the exact email_id and URL values from previous tool results - never invent or simplify them.
 
+8. **SCRAPING GUIDELINES**: 
+   - **DO NOT** call multiple scrape_job tools simultaneously (causes timeouts and conflicts)
+   - **INSTEAD**: Use process_linkedin_emails() for bulk scraping (handles multiple jobs efficiently)
+   - **OR**: Scrape jobs one at a time if using individual scrape_job calls
+   - Each scraping operation can take 30-60 seconds due to LinkedIn's anti-bot measures
+
 RESPONSE FORMAT EXAMPLES:
 
 For list_emails:

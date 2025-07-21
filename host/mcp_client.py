@@ -51,6 +51,7 @@ class MCPClient:
         self.request_id = 0
         self.pending_requests: Dict[str, asyncio.Future] = {}
         self.running = False
+        self._tool_semaphore = asyncio.Semaphore(2)  # Limit to 2 concurrent tool calls
         
         logger.info(f"🚀 MCP Client initialized")
         logger.info(f"   Server command: {' '.join(server_command)}")
@@ -189,21 +190,22 @@ class MCPClient:
         Returns:
             Tool execution result
         """
-        try:
-            logger.info(f"🔧 Calling tool: {tool_name}")
-            logger.debug(f"   Arguments: {arguments}")
-            
-            result = await self._send_request("tools/call", {
-                "name": tool_name,
-                "arguments": arguments
-            })
-            
-            logger.info(f"✅ Tool {tool_name} completed")
-            return result
-            
-        except Exception as e:
-            logger.error(f"❌ Tool {tool_name} failed: {e}")
-            raise MCPClientError(f"Tool {tool_name} failed: {e}")
+        async with self._tool_semaphore:  # Limit concurrent tool calls
+            try:
+                logger.info(f"🔧 Calling tool: {tool_name}")
+                logger.debug(f"   Arguments: {arguments}")
+                
+                result = await self._send_request("tools/call", {
+                    "name": tool_name,
+                    "arguments": arguments
+                })
+                
+                logger.info(f"✅ Tool {tool_name} completed")
+                return result
+                
+            except Exception as e:
+                logger.error(f"❌ Tool {tool_name} failed: {e}")
+                raise MCPClientError(f"Tool {tool_name} failed: {e}")
     
     async def list_tools(self) -> List[Dict[str, Any]]:
         """List available tools from the MCP server."""
@@ -252,7 +254,7 @@ class MCPClient:
             logger.debug(f"📤 Sent request: {method} (ID: {request_id})")
             
             # Wait for response (with timeout)
-            response = await asyncio.wait_for(future, timeout=10.0)  # Reduced timeout for faster debugging
+            response = await asyncio.wait_for(future, timeout=60.0)  # Increased timeout for scraping operations
             return response
             
         except asyncio.TimeoutError:
