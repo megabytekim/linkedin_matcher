@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """
-OpenAI LLM Host for LinkedIn Job Scraper
+OpenAI LLM Host for LinkedIn Job Scraper - MCP Client Only
 
-This implements the GPT-4 host that can use either:
-1. MCP Client (network boundary, JSON-RPC) - for production
-2. Local functions (direct import) - for development/demos
+This implements the GPT-4 host that communicates with tools via MCP protocol:
+User Chat ↔ OpenAI GPT-4 ↔ MCP Client ↔ MCP Server (stdio) ↔ Tools
 
-Architecture options:
-- Option 1: User Chat ↔ OpenAI GPT-4 ↔ MCP Client ↔ MCP Server ↔ Tools
-- Option 2: User Chat ↔ OpenAI GPT-4 ↔ Local Tools (direct import)
+Pure MCP client/server architecture for clean separation of concerns.
 """
 
 import os
@@ -27,26 +24,22 @@ from openai import OpenAI
 
 class OpenAILLMHost:
     """
-    OpenAI GPT-4 host with flexible backend options.
+    OpenAI GPT-4 host with MCP client for stdio tool communication.
     
-    Can use either:
-    1. MCP Client for network-based tool calls
-    2. Local function imports for direct calls
+    Architecture: OpenAI Host → MCP Client → subprocess(stdio) → MCP Server → Tools
     """
     
-    def __init__(self, api_key: Optional[str] = None, use_mcp_client: bool = False):
+    def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize the OpenAI LLM Host.
+        Initialize the OpenAI LLM Host with MCP client.
         
         Args:
             api_key: OpenAI API key. If None, will try to get from environment.
-            use_mcp_client: If True, use MCP client. If False, use local functions.
         """
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         if not self.api_key:
             raise ValueError("OpenAI API key is required. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
         
-        self.use_mcp_client = use_mcp_client
         self.model = os.getenv('OPENAI_MODEL', 'gpt-4o')
         
         self.client = OpenAI(api_key=self.api_key)
@@ -62,62 +55,26 @@ class OpenAILLMHost:
             'last_emails_found': 0  # Number of emails found in last search
         }
         
-        # Initialize tools based on mode
-        if use_mcp_client:
-            self._init_mcp_client()
-        else:
-            self._init_local_tools()
+        # Initialize MCP client
+        self._init_mcp_client()
         
         self.system_prompt = self._create_system_prompt()
         self.mcp_tools = self._define_mcp_tools()
     
     def _init_mcp_client(self):
-        """Initialize MCP client for network-based tool calls."""
-        from .mcp_client import MCPClient
+        """Initialize MCP client for stdio tool communication."""
+        from host.mcp_client import MCPClient
         
-        # Initialize MCP client with server command
+        # Initialize MCP client with server command (use module mode)
         self.mcp_client = MCPClient(
-            server_command=["python", "core/serve.py"],
+            server_command=["python", "-m", "core.serve"],
             cwd=str(Path(__file__).parent.parent)  # Project root
         )
         
-        print("📡 MCP Client mode (network boundary)")
-        self.tool_mode = "mcp_client"
+        print("📡 MCP Client mode (stdio communication)")
         
         # Note: MCP client will be started when first tool call is made
         self._mcp_client_started = False
-    
-    def _init_local_tools(self):
-        """Initialize local function imports for direct tool calls."""
-        from core.tools.gmail import (
-            list_emails, extract_job_urls, get_message_content,
-            add_label
-        )
-        from core.tools.scraper import (
-            scrape_job, scrape_job_async, scrape_multiple_jobs, convert_to_guest_url,
-            validate_linkedin_url, get_job_summary
-        )
-        from scraper_module.tools.gmail_scraper import (
-            get_job_details_from_email
-        )
-        
-        # Define local tools
-        self.local_tools = {
-            'list_emails': list_emails,
-            'extract_job_urls': extract_job_urls,
-            'get_message_content': get_message_content,
-            'add_label': add_label,
-            'get_job_details_from_email': get_job_details_from_email,
-            'scrape_job': scrape_job,
-            'scrape_job_async': scrape_job_async,
-            'scrape_multiple_jobs': scrape_multiple_jobs,
-            'convert_to_guest_url': convert_to_guest_url,
-            'validate_linkedin_url': validate_linkedin_url,
-            'get_job_summary': get_job_summary
-        }
-        
-        print("🔧 Local tools mode (direct import)")
-        self.tool_mode = "local"
     
     def _create_system_prompt(self) -> str:
         """Create the system prompt for the LLM."""
@@ -127,7 +84,7 @@ class OpenAILLMHost:
         return f"""You are a LinkedIn Job Search Assistant with access to powerful tools for Gmail and LinkedIn job scraping.
 
 Current Session Memory: {memory_summary}
-Tool Mode: {self.tool_mode}
+Tool Mode: MCP Client (stdio communication)
 
 Your capabilities:
 - Search Gmail for job-related emails using any Gmail search query
@@ -186,7 +143,7 @@ IMPORTANT WORKFLOW GUIDELINES:
    - "I found X emails earlier, here they are again:"
    - "Based on the emails we found, here are the job opportunities:"
 
-6. **RECOMMENDED**: For complex requests like "find emails and scrape all jobs", use the auto_job_search_workflow() tool which handles the entire process automatically and correctly.
+6. **RECOMMENDED**: For complex requests like "find emails and scrape all jobs", use the process_linkedin_emails() tool which handles the entire process automatically and correctly.
 
 7. **CRITICAL**: When using individual tools, always copy the exact email_id and URL values from previous tool results - never invent or simplify them.
 
@@ -234,9 +191,7 @@ When users ask about jobs:
 4. Present results in a clear, organized format
 5. Offer to perform additional analysis or actions
 
-Available tools depend on mode:
-- Local mode: Direct function calls for fastest performance
-- MCP mode: Network calls for proper separation of concerns
+All tool communication happens via MCP protocol for proper separation of concerns.
 
 Be conversational, helpful, and proactive in suggesting next steps. Most importantly: **ALWAYS SHOW THE ACTUAL DATA TO THE USER** rather than just mentioning that you found it."""
 
@@ -307,7 +262,7 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
             {
                 "type": "function",
                 "function": {
-                    "name": "auto_job_search_workflow",
+                    "name": "process_linkedin_emails",
                     "description": "Complete automated workflow: Search emails → Extract URLs → Scrape jobs → Return comprehensive results",
                     "parameters": {
                         "type": "object",
@@ -315,17 +270,17 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                             "query": {
                                 "type": "string",
                                 "description": "Gmail search query (e.g., 'from:linkedin.com', '채용공고')",
-                                "default": "from:linkedin.com OR 채용공고 OR job"
+                                "default": "from:linkedin.com"
                             },
-                            "max_emails": {
+                            "max_results": {
                                 "type": "integer",
                                 "description": "Maximum emails to process",
                                 "default": 5
                             },
-                            "max_jobs": {
+                            "max_content_length": {
                                 "type": "integer", 
-                                "description": "Maximum jobs to scrape",
-                                "default": 10
+                                "description": "Maximum content length for job descriptions",
+                                "default": 2000
                             }
                         },
                         "required": []
@@ -335,60 +290,26 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
         ]
     
     async def execute_tool(self, tool_name: str, **kwargs) -> Any:
-        """Execute a tool using the configured backend (MCP client or local)."""
+        """Execute a tool using MCP client."""
         try:
             print(f"🔧 Executing tool: {tool_name} with args: {kwargs}")
             
-            if self.use_mcp_client:
-                # Start MCP client if not already started
-                if not self._mcp_client_started:
-                    print("🚀 Starting MCP client...")
-                    await self.mcp_client.start()
-                    self._mcp_client_started = True
-                
-                # Map OpenAI function names to MCP tool names
-                mcp_tool_name = self._map_to_mcp_tool_name(tool_name)
-                
-                # Call tool via MCP client
-                result = await self.mcp_client.call_tool(mcp_tool_name, kwargs)
-                
-                # Process MCP result format
-                processed_result = self._process_mcp_result(result)
-                
-                # Store results in session memory based on tool type
-                self._store_tool_result_in_memory(tool_name, processed_result, kwargs)
-                
-                return processed_result
-            else:
-                # Use local functions
-                if tool_name == "list_emails":
-                    result = self.local_tools['list_emails'](kwargs.get('query', ''), kwargs.get('max_results', 10))
-                    # Store emails in memory
-                    for email in result:
-                        self.session_memory['emails'][email['id']] = email
-                    return result
-                
-                elif tool_name == "extract_job_urls":
-                    result = self.local_tools['extract_job_urls'](kwargs['email_id'])
-                    self.session_memory['job_urls'][kwargs['email_id']] = result
-                    return result
-                
-                elif tool_name == "scrape_job":
-                    url = kwargs['url']
-                    result = await self.local_tools['scrape_job_async'](url, kwargs.get('max_content_length', 2000))
-                    if result:
-                        self.session_memory['scraped_jobs'][url] = result
-                    return result
-                
-                elif tool_name == "auto_job_search_workflow":
-                    return await self._execute_auto_workflow(
-                        kwargs.get('query', 'from:linkedin.com OR 채용공고 OR job'),
-                        kwargs.get('max_emails', 5),
-                        kwargs.get('max_jobs', 10)
-                    )
-                
-                else:
-                    return f"Unknown tool: {tool_name}"
+            # Start MCP client if not already started
+            if not self._mcp_client_started:
+                print("🚀 Starting MCP client...")
+                await self.mcp_client.start()
+                self._mcp_client_started = True
+            
+            # Call tool via MCP client
+            result = await self.mcp_client.call_tool(tool_name, kwargs)
+            
+            # Process MCP result format
+            processed_result = self._process_mcp_result(result)
+            
+            # Store results in session memory based on tool type
+            self._store_tool_result_in_memory(tool_name, processed_result, kwargs)
+            
+            return processed_result
                 
         except Exception as e:
             print(f"❌ Error executing tool {tool_name}: {e}")
@@ -447,86 +368,6 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                     
         except Exception as e:
             print(f"⚠️  Warning: Failed to store result in memory: {e}")
-    
-    def _map_to_mcp_tool_name(self, openai_function_name: str) -> str:
-        """Map OpenAI function names to MCP tool names."""
-        # OpenAI function names → MCP tool names (after removing mcp_ prefix anti-pattern)
-        mapping = {
-            "list_emails": "list_emails",
-            "extract_job_urls": "extract_job_urls", 
-            "scrape_job": "scrape_job",
-            "auto_job_search_workflow": "process_linkedin_emails"  # Use the proper combined tool
-        }
-        return mapping.get(openai_function_name, openai_function_name)
-    
-    async def _execute_auto_workflow(self, query: str, max_emails: int, max_jobs: int) -> dict:
-        """Execute complete automated job search workflow."""
-        try:
-            print(f"🔄 Starting auto workflow: {query}")
-            
-            # Step 1: Search emails
-            emails = self.local_tools['list_emails'](query, max_emails)
-            if not emails:
-                return {
-                    'status': 'no_emails_found',
-                    'message': f'No emails found for query: {query}',
-                    'emails_found': 0,
-                    'urls_extracted': 0,
-                    'jobs_scraped': 0
-                }
-            
-            # Store emails in memory
-            for email in emails:
-                self.session_memory['emails'][email['id']] = email
-            
-            # Step 2: Extract URLs from all emails
-            all_urls = []
-            for email in emails:
-                try:
-                    urls = self.local_tools['extract_job_urls'](email['id'])
-                    self.session_memory['job_urls'][email['id']] = urls
-                    all_urls.extend([url_info['url'] for url_info in urls if 'url' in url_info])
-                except Exception as e:
-                    print(f"Failed to extract URLs from email {email['id']}: {e}")
-            
-            # Step 3: Scrape jobs (limit to max_jobs)
-            urls_to_scrape = all_urls[:max_jobs]
-            scraped_jobs = []
-            
-            for url in urls_to_scrape:
-                try:
-                    job_data = await self.local_tools['scrape_job_async'](url)
-                    if job_data:
-                        scraped_jobs.append(job_data)
-                        self.session_memory['scraped_jobs'][url] = job_data
-                except Exception as e:
-                    print(f"Failed to scrape {url}: {e}")
-            
-            # Step 4: Store workflow result
-            workflow_result = {
-                'query': query,
-                'emails_found': len(emails),
-                'urls_extracted': len(all_urls),
-                'jobs_scraped': len(scraped_jobs),
-                'emails': emails,
-                'job_urls': all_urls,
-                'scraped_jobs': scraped_jobs,
-                'summary': f"Found {len(emails)} emails, extracted {len(all_urls)} URLs, scraped {len(scraped_jobs)} jobs"
-            }
-            
-            self.session_memory['workflow_results'].append(workflow_result)
-            
-            return workflow_result
-            
-        except Exception as e:
-            print(f"❌ Auto workflow failed: {e}")
-            return {
-                'status': 'error',
-                'message': f'Workflow failed: {str(e)}',
-                'emails_found': 0,
-                'urls_extracted': 0,
-                'jobs_scraped': 0
-            }
     
     async def chat(self, user_message: str) -> str:
         """Process a user message through OpenAI GPT-4 with tool access."""
@@ -642,7 +483,7 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
 
     async def cleanup(self):
         """Clean up resources, especially MCP client."""
-        if self.use_mcp_client and hasattr(self, 'mcp_client') and self._mcp_client_started:
+        if hasattr(self, 'mcp_client') and self._mcp_client_started:
             print("🧹 Cleaning up MCP client...")
             await self.mcp_client.stop()
             self._mcp_client_started = False
@@ -650,16 +491,16 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
     
     def __del__(self):
         """Destructor to ensure cleanup."""
-        if self.use_mcp_client and hasattr(self, 'mcp_client') and self._mcp_client_started:
+        if hasattr(self, 'mcp_client') and self._mcp_client_started:
             # Note: Can't use async in __del__, so this is just a warning
             print("⚠️  MCP client was not properly cleaned up. Use await host.cleanup()")
 
 
 async def main():
     """Main chat interface for OpenAI LLM Host."""
-    print("🚀 LinkedIn Job Assistant - OpenAI + Tools Integration")
+    print("🚀 LinkedIn Job Assistant - OpenAI + MCP Integration")
     print("=" * 70)
-    print("🎯 GPT-4 powered job search with tools")
+    print("🎯 GPT-4 powered job search with MCP tools (stdio communication)")
     print("💬 Ask natural language questions about your job search")
     print("❓ Type 'quit' to exit")
     print("=" * 70)
@@ -672,10 +513,10 @@ async def main():
         print("   export OPENAI_API_KEY='sk-your-key-here'")
         return
     
-    # Initialize host (use local tools by default)
+    # Initialize host (MCP client mode only)
     try:
-        host = OpenAILLMHost(api_key, use_mcp_client=False)
-        print("✅ OpenAI LLM Host initialized successfully!")
+        host = OpenAILLMHost(api_key)
+        print("✅ OpenAI LLM Host initialized successfully! (MCP client mode)")
     except Exception as e:
         print(f"❌ Failed to initialize: {e}")
         return
@@ -699,6 +540,7 @@ async def main():
                 print("\n👋 Thanks for using LinkedIn Job Assistant!")
                 host.save_conversation()
                 host.save_session_memory()
+                await host.cleanup()
                 break
             
             # Check for memory status
@@ -718,6 +560,7 @@ async def main():
             print("\n\n👋 Thanks for using LinkedIn Job Assistant!")
             host.save_conversation()
             host.save_session_memory()
+            await host.cleanup()
             break
         except Exception as e:
             print(f"\n❌ Error: {e}")
