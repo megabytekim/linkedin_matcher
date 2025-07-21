@@ -55,6 +55,10 @@ class OpenAILLMHost:
             'last_emails_found': 0  # Number of emails found in last search
         }
         
+        # Tool call tracking
+        self.tool_call_log = []
+        self.tool_call_counter = 0
+        
         # Initialize MCP client
         self._init_mcp_client()
         
@@ -115,6 +119,11 @@ CRITICAL DISPLAY GUIDELINES:
 3. **DISPLAY JOB URLS** when extracted from emails
 4. **SHOW SCRAPED JOB DETAILS** in organized format
 5. **BE TRANSPARENT** about what tools you're using and what data you're processing
+6. **RAW DATA DISPLAY**: When user asks for "상세 정보" or "detailed information":
+   - Show the COMPLETE scraped job data as-is
+   - Don't summarize or reformat the original data
+   - Include ALL fields returned by the scraper (company, title, description, requirements, etc.)
+   - Use clear formatting but preserve original content
 
 IMPORTANT WORKFLOW GUIDELINES:
 1. When asked to find and scrape jobs, follow this exact sequence:
@@ -297,8 +306,11 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
     
     async def execute_tool(self, tool_name: str, **kwargs) -> Any:
         """Execute a tool using MCP client."""
+        self.tool_call_counter += 1
+        start_time = datetime.now()
+        
         try:
-            print(f"🔧 Executing tool: {tool_name} with args: {kwargs}")
+            print(f"🔧 [{self.tool_call_counter}] Executing tool: {tool_name} with args: {kwargs}")
             
             # Start MCP client if not already started
             if not self._mcp_client_started:
@@ -315,10 +327,45 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
             # Store results in session memory based on tool type
             self._store_tool_result_in_memory(tool_name, processed_result, kwargs)
             
+            # Log the tool call
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            
+            log_entry = {
+                'order': self.tool_call_counter,
+                'tool_name': tool_name,
+                'arguments': kwargs,
+                'start_time': start_time.isoformat(),
+                'end_time': end_time.isoformat(),
+                'duration_seconds': duration,
+                'success': True,
+                'result_type': type(processed_result).__name__,
+                'result_size': len(str(processed_result)) if processed_result else 0
+            }
+            self.tool_call_log.append(log_entry)
+            
+            print(f"✅ [{self.tool_call_counter}] {tool_name} completed in {duration:.2f}s")
+            
             return processed_result
                 
         except Exception as e:
-            print(f"❌ Error executing tool {tool_name}: {e}")
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            
+            # Log the failed tool call
+            log_entry = {
+                'order': self.tool_call_counter,
+                'tool_name': tool_name,
+                'arguments': kwargs,
+                'start_time': start_time.isoformat(),
+                'end_time': end_time.isoformat(),
+                'duration_seconds': duration,
+                'success': False,
+                'error': str(e)
+            }
+            self.tool_call_log.append(log_entry)
+            
+            print(f"❌ [{self.tool_call_counter}] Error executing tool {tool_name}: {e}")
             return f"Error: {str(e)}"
     
     def _process_mcp_result(self, result: Any) -> Any:
@@ -467,12 +514,40 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
         
         return " | ".join(summary) if summary else "No data in memory"
     
+    def save_tool_call_log(self):
+        """Save tool call log to file."""
+        try:
+            log_file = Path("host/tool_call_log.json")
+            with open(log_file, 'w', encoding='utf-8') as f:
+                json.dump(self.tool_call_log, f, indent=2, ensure_ascii=False)
+            print(f"📋 Tool call log saved to {log_file}")
+        except Exception as e:
+            print(f"❌ Error saving tool call log: {e}")
+    
+    def get_tool_call_summary(self) -> str:
+        """Get a summary of tool calls made in this session."""
+        if not self.tool_call_log:
+            return "No tool calls made yet"
+        
+        summary = []
+        summary.append(f"📋 Tool Call Summary ({len(self.tool_call_log)} calls):")
+        
+        for entry in self.tool_call_log:
+            status = "✅" if entry['success'] else "❌"
+            duration = entry['duration_seconds']
+            summary.append(f"  {status} [{entry['order']}] {entry['tool_name']} ({duration:.2f}s)")
+            
+            if not entry['success']:
+                summary.append(f"      Error: {entry['error']}")
+        
+        return "\n".join(summary)
+    
     def save_conversation(self):
         """Save conversation history to file."""
         try:
             history_file = Path("host/openai_conversation_history.json")
-            with open(history_file, 'w') as f:
-                json.dump(self.conversation_history, f, indent=2, default=str)
+            with open(history_file, 'w', encoding='utf-8') as f:
+                json.dump(self.conversation_history, f, indent=2, ensure_ascii=False)
             print(f"💾 Conversation saved to {history_file}")
         except Exception as e:
             print(f"❌ Error saving conversation: {e}")
@@ -481,8 +556,8 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
         """Save session memory to file."""
         try:
             memory_file = Path("host/openai_session_memory.json")
-            with open(memory_file, 'w') as f:
-                json.dump(self.session_memory, f, indent=2, default=str)
+            with open(memory_file, 'w', encoding='utf-8') as f:
+                json.dump(self.session_memory, f, indent=2, ensure_ascii=False)
             print(f"💾 Session memory saved to {memory_file}")
         except Exception as e:
             print(f"❌ Error saving session memory: {e}")
@@ -531,7 +606,11 @@ async def main():
     print("💡 Examples:")
     print("   • 'Find data science jobs in my emails'")
     print("   • 'What are the latest machine learning opportunities?'")
-    print("   • 'Scrape the most recent job postings and summarize them'\n")
+    print("   • 'Scrape the most recent job postings and summarize them'")
+    print("📋 Commands:")
+    print("   • Type 'memory' or '상태' to see session memory status")
+    print("   • Type 'tools' or 'log' or '로그' to see tool call history")
+    print("   • Type 'quit' to exit and save all logs\n")
     
     while True:
         try:
@@ -546,6 +625,7 @@ async def main():
                 print("\n👋 Thanks for using LinkedIn Job Assistant!")
                 host.save_conversation()
                 host.save_session_memory()
+                host.save_tool_call_log()
                 await host.cleanup()
                 break
             
@@ -553,6 +633,12 @@ async def main():
             if user_input.lower() in ['memory', 'mem', '상태']:
                 memory_summary = host.get_memory_summary()
                 print(f"\n🧠 Session Memory Status: {memory_summary}")
+                continue
+            
+            # Check for tool call log
+            if user_input.lower() in ['tools', 'log', '로그', 'toollog']:
+                tool_summary = host.get_tool_call_summary()
+                print(f"\n{tool_summary}")
                 continue
             
             # Process with OpenAI + Tools
@@ -566,6 +652,7 @@ async def main():
             print("\n\n👋 Thanks for using LinkedIn Job Assistant!")
             host.save_conversation()
             host.save_session_memory()
+            host.save_tool_call_log()
             await host.cleanup()
             break
         except Exception as e:
