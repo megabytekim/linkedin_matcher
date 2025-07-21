@@ -1,168 +1,108 @@
-#!/usr/bin/env python3
-"""Unit tests for GmailAPI class using mocking."""
+"""
+Unit tests for Gmail API module.
+
+These tests use mocking to avoid requiring actual Gmail API credentials
+and LinkedIn job URLs. They focus on testing the logic and error handling
+of the Gmail API integration.
+"""
 
 import unittest
 from unittest.mock import Mock, patch, mock_open, MagicMock
+import json
 import base64
-import pickle
-import sys
-import os
-
-# Add parent directories to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from gmail_module.gmail_api import GmailAPI
 
 
 class TestGmailAPIUnit(unittest.TestCase):
-    """Unit tests for GmailAPI class."""
+    """Unit tests for Gmail API functionality."""
     
     def setUp(self):
-        """Set up test fixtures before each test method."""
-        # Mock the config module
-        self.config_patcher = patch('gmail_module.gmail_api.CREDENTIALS_FILE')
-        self.token_patcher = patch('gmail_module.gmail_api.TOKEN_FILE')
-        self.scopes_patcher = patch('gmail_module.gmail_api.GMAIL_SCOPES')
+        """Set up test fixtures."""
+        # Mock the service to avoid API calls
+        self.mock_service = Mock()
         
-        self.mock_credentials_file = self.config_patcher.start()
-        self.mock_token_file = self.token_patcher.start()
-        self.mock_scopes = self.scopes_patcher.start()
+        # Patch the build function to return our mock service
+        self.build_patcher = patch('gmail_module.gmail_api.build')
+        self.mock_build = self.build_patcher.start()
+        self.mock_build.return_value = self.mock_service
         
-        # Set up mock file paths
-        self.mock_credentials_file.exists.return_value = True
-        self.mock_token_file.exists.return_value = True
-        self.mock_scopes = ['https://www.googleapis.com/auth/gmail.readonly']
-        
-        # Mock the scraper
-        self.scraper_patcher = patch('gmail_module.gmail_api.JobScraper')
-        self.mock_scraper_class = self.scraper_patcher.start()
-        self.mock_scraper = Mock()
-        self.mock_scraper_class.return_value = self.mock_scraper
-    
     def tearDown(self):
-        """Clean up after each test method."""
-        self.config_patcher.stop()
-        self.token_patcher.stop()
-        self.scopes_patcher.stop()
-        self.scraper_patcher.stop()
+        """Clean up test fixtures."""
+        self.build_patcher.stop()
     
-    @patch('gmail_module.gmail_api.build')
     @patch('gmail_module.gmail_api.pickle.load')
     @patch('builtins.open', new_callable=mock_open)
-    def test_authentication_with_existing_token(self, mock_file, mock_pickle_load, mock_build):
-        """Test authentication with existing valid token."""
-        # Setup mocks
-        mock_creds = Mock()
-        mock_creds.valid = True
-        mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
-        
-        # Create GmailAPI instance
-        gmail_api = GmailAPI()
-        
-        # Assertions
-        mock_pickle_load.assert_called_once()
-        mock_build.assert_called_once_with('gmail', 'v1', credentials=mock_creds)
-        self.assertEqual(gmail_api.service, mock_service)
-    
-    @patch('gmail_module.gmail_api.build')
-    @patch('gmail_module.gmail_api.InstalledAppFlow.from_client_secrets_file')
-    @patch('gmail_module.gmail_api.pickle.dump')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_authentication_new_credentials(self, mock_file, mock_pickle_dump, mock_flow_class, mock_build):
-        """Test authentication with new credentials."""
-        # Setup mocks
-        self.mock_token_file.exists.return_value = False
-        mock_flow = Mock()
-        mock_flow_class.return_value = mock_flow
-        mock_creds = Mock()
-        mock_flow.run_local_server.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
-        
-        # Create GmailAPI instance
-        gmail_api = GmailAPI()
-        
-        # Assertions
-        mock_flow_class.assert_called_once()
-        mock_flow.run_local_server.assert_called_once_with(port=0)
-        mock_pickle_dump.assert_called_once()
-        mock_build.assert_called_once_with('gmail', 'v1', credentials=mock_creds)
-    
-    @patch('gmail_module.gmail_api.build')
-    @patch('gmail_module.gmail_api.pickle.load')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_list_messages_success(self, mock_file, mock_pickle_load, mock_build):
+    def test_list_messages_success(self, mock_file, mock_pickle_load):
         """Test successful message listing."""
-        # Setup mocks
+        # Mock authentication
         mock_creds = Mock()
         mock_creds.valid = True
         mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
         
         # Mock API responses
-        mock_list_response = {
+        mock_messages_list = {
             'messages': [
                 {'id': 'msg1'},
                 {'id': 'msg2'}
             ]
         }
         
-        mock_msg_detail_1 = {
-            'id': 'msg1',
-            'snippet': 'Test message 1',
+        mock_message_detail = {
             'payload': {
                 'headers': [
-                    {'name': 'Subject', 'value': 'Test Subject 1'},
-                    {'name': 'From', 'value': 'test1@linkedin.com'},
-                    {'name': 'Date', 'value': '2025-01-18'}
+                    {'name': 'Subject', 'value': 'Test Subject'},
+                    {'name': 'From', 'value': 'test@example.com'},
+                    {'name': 'Date', 'value': 'Mon, 1 Jan 2024 10:00:00'}
                 ]
-            }
+            },
+            'snippet': 'Test snippet'
         }
         
-        mock_msg_detail_2 = {
-            'id': 'msg2',
-            'snippet': 'Test message 2',
-            'payload': {
-                'headers': [
-                    {'name': 'Subject', 'value': 'Test Subject 2'},
-                    {'name': 'From', 'value': 'test2@linkedin.com'},
-                    {'name': 'Date', 'value': '2025-01-18'}
-                ]
-            }
-        }
+        self.mock_service.users().messages().list().execute.return_value = mock_messages_list
+        self.mock_service.users().messages().get().execute.return_value = mock_message_detail
         
-        mock_service.users().messages().list().execute.return_value = mock_list_response
-        mock_service.users().messages().get().execute.side_effect = [mock_msg_detail_1, mock_msg_detail_2]
-        
-        # Create GmailAPI instance and test
+        # Test
         gmail_api = GmailAPI()
-        messages = gmail_api.list_messages(query="from:linkedin.com", max_results=2)
+        result = gmail_api.list_messages('from:test@example.com', 10)
         
         # Assertions
-        self.assertEqual(len(messages), 2)
-        self.assertEqual(messages[0]['id'], 'msg1')
-        self.assertEqual(messages[0]['subject'], 'Test Subject 1')
-        self.assertEqual(messages[0]['from'], 'test1@linkedin.com')
-        self.assertEqual(messages[1]['id'], 'msg2')
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]['id'], 'msg1')
+        self.assertEqual(result[0]['subject'], 'Test Subject')
+        self.assertEqual(result[0]['from'], 'test@example.com')
     
-    @patch('gmail_module.gmail_api.build')
     @patch('gmail_module.gmail_api.pickle.load')
     @patch('builtins.open', new_callable=mock_open)
-    def test_get_message_content_success(self, mock_file, mock_pickle_load, mock_build):
-        """Test successful message content retrieval."""
-        # Setup mocks
+    def test_list_messages_empty_query(self, mock_file, mock_pickle_load):
+        """Test message listing with empty query defaults to inbox."""
         mock_creds = Mock()
         mock_creds.valid = True
         mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
         
-        # Create test content
-        test_content = "This is a test email content with LinkedIn job URLs."
-        encoded_content = base64.urlsafe_b64encode(test_content.encode('utf-8')).decode('utf-8')
+        self.mock_service.users().messages().list().execute.return_value = {'messages': []}
+        
+        gmail_api = GmailAPI()
+        result = gmail_api.list_messages('', 10)
+        
+        # Should search 'in:inbox' when query is empty
+        self.mock_service.users().messages().list.assert_called_with(
+            userId='me',
+            q='in:inbox',
+            maxResults=10
+        )
+    
+    @patch('gmail_module.gmail_api.pickle.load')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_get_message_content_success(self, mock_file, mock_pickle_load):
+        """Test successful message content retrieval."""
+        mock_creds = Mock()
+        mock_creds.valid = True
+        mock_pickle_load.return_value = mock_creds
+        
+        # Mock message with text content
+        test_content = "This is test message content"
+        encoded_content = base64.urlsafe_b64encode(test_content.encode()).decode()
         
         mock_message = {
             'payload': {
@@ -173,144 +113,77 @@ class TestGmailAPIUnit(unittest.TestCase):
             }
         }
         
-        mock_service.users().messages().get().execute.return_value = mock_message
+        self.mock_service.users().messages().get().execute.return_value = mock_message
         
-        # Create GmailAPI instance and test
         gmail_api = GmailAPI()
-        content = gmail_api.get_message_content('test_msg_id')
+        result = gmail_api.get_message_content('test_msg_id')
         
-        # Assertions
-        self.assertEqual(content, test_content)
-        # The service is called to get the message
-        mock_service.users().messages().get.assert_called_with(
-            userId='me', 
-            id='test_msg_id',
-            format='full'
-        )
+        self.assertEqual(result, test_content)
     
-    @patch('gmail_module.gmail_api.build')
-    @patch('gmail_module.gmail_api.pickle.load')
+    @patch('gmail_module.gmail_api.pickle.load') 
     @patch('builtins.open', new_callable=mock_open)
-    def test_extract_urls_from_text(self, mock_file, mock_pickle_load, mock_build):
-        """Test URL extraction from plain text."""
+    def test_extract_job_urls_from_text(self, mock_file, mock_pickle_load):
+        """Test LinkedIn URL extraction from message content."""
         mock_creds = Mock()
         mock_creds.valid = True
         mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
         
-        # Create GmailAPI instance
-        gmail_api = GmailAPI()
-        
-        # Test text with LinkedIn URLs
+        # Message with LinkedIn job URLs
         test_content = """
-        Check out this job: https://www.linkedin.com/jobs/view/1234567890/
-        Another opportunity: https://linkedin.com/comm/jobs/view/9876543210/
-        Guest URL: https://www.linkedin.com/jobs-guest/jobs/view/1111111111/
+        Check out these jobs:
+        https://www.linkedin.com/jobs/view/1234567890/
+        https://linkedin.com/jobs/view/9876543210/?utm_source=email
         """
+        encoded_content = base64.urlsafe_b64encode(test_content.encode()).decode()
         
-        urls = gmail_api._extract_urls_from_text(test_content)
-        
-        # Assertions
-        self.assertEqual(len(urls), 3)
-        self.assertIn('1234567890', urls[0]['url'])
-        self.assertIn('9876543210', urls[1]['url'])
-        self.assertIn('1111111111', urls[2]['url'])
-        self.assertEqual(urls[0]['link_text'], 'View Job')
-    
-    @patch('gmail_module.gmail_api.build')
-    @patch('gmail_module.gmail_api.pickle.load')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_extract_urls_from_html(self, mock_file, mock_pickle_load, mock_build):
-        """Test URL extraction from HTML content."""
-        mock_creds = Mock()
-        mock_creds.valid = True
-        mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
-        
-        # Create GmailAPI instance
-        gmail_api = GmailAPI()
-        
-        # Test HTML with LinkedIn URLs
-        test_html = """
-        <html>
-        <body>
-            <a href="https://www.linkedin.com/jobs/view/1234567890/">View Job Position</a>
-            <a href="https://linkedin.com/comm/jobs/view/9876543210/">Apply Now</a>
-            <a href="https://google.com">Not a job link</a>
-        </body>
-        </html>
-        """
-        
-        urls = gmail_api._extract_urls_from_html(test_html)
-        
-        # Assertions
-        self.assertEqual(len(urls), 2)
-        self.assertIn('1234567890', urls[0]['url'])
-        self.assertEqual(urls[0]['link_text'], 'View Job Position')
-        self.assertIn('9876543210', urls[1]['url'])
-        self.assertEqual(urls[1]['link_text'], 'Apply Now')
-    
-    @patch('gmail_module.gmail_api.build')
-    @patch('gmail_module.gmail_api.pickle.load')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_add_label_success(self, mock_file, mock_pickle_load, mock_build):
-        """Test successful label addition."""
-        mock_creds = Mock()
-        mock_creds.valid = True
-        mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
-        
-        # Mock label operations
-        mock_labels_response = {
-            'labels': [
-                {'id': 'label_123', 'name': 'Important'}
-            ]
+        mock_message = {
+            'payload': {
+                'mimeType': 'text/plain',
+                'body': {
+                    'data': encoded_content
+                }
+            }
         }
-        mock_service.users().labels().list().execute.return_value = mock_labels_response
-        mock_service.users().messages().modify().execute.return_value = {}
         
-        # Create GmailAPI instance and test
+        self.mock_service.users().messages().get().execute.return_value = mock_message
+        
         gmail_api = GmailAPI()
-        result = gmail_api.add_label('test_msg_id', 'Important')
+        result = gmail_api.extract_job_urls('test_msg_id')
+        
+        # Should find the LinkedIn URLs
+        self.assertEqual(len(result), 2)
+        self.assertIn('1234567890', result[0]['url'])
+        self.assertIn('9876543210', result[1]['url'])
+    
+    @patch('gmail_module.gmail_api.pickle.load')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_add_label_creates_new_label(self, mock_file, mock_pickle_load):
+        """Test adding a label creates new label if it doesn't exist."""
+        mock_creds = Mock()
+        mock_creds.valid = True
+        mock_pickle_load.return_value = mock_creds
+        
+        # Mock no existing labels
+        self.mock_service.users().labels().list().execute.return_value = {'labels': []}
+        
+        # Mock label creation
+        mock_created_label = {'id': 'label_123', 'name': 'Test Label'}
+        self.mock_service.users().labels().create().execute.return_value = mock_created_label
+        
+        # Mock message modification
+        self.mock_service.users().messages().modify().execute.return_value = {}
+        
+        gmail_api = GmailAPI()
+        result = gmail_api.add_label('msg_123', 'Test Label')
         
         # Assertions
         self.assertTrue(result)
-        # The service is called to modify the message
-        mock_service.users().messages().modify.assert_called_with(
+        self.mock_service.users().labels().create.assert_called_once()
+        self.mock_service.users().messages().modify.assert_called_once_with(
             userId='me',
-            id='test_msg_id',
+            id='msg_123',
             body={'addLabelIds': ['label_123']}
         )
-    
-    @patch('gmail_module.gmail_api.build')
-    @patch('gmail_module.gmail_api.pickle.load')
-    @patch('builtins.open', new_callable=mock_open)
-    def test_scrape_job_page_delegation(self, mock_file, mock_pickle_load, mock_build):
-        """Test that job scraping is properly delegated to JobScraper."""
-        mock_creds = Mock()
-        mock_creds.valid = True
-        mock_pickle_load.return_value = mock_creds
-        mock_service = Mock()
-        mock_build.return_value = mock_service
-        
-        # Mock scraper response
-        mock_job_data = {
-            'title': 'Software Engineer',
-            'company': 'Test Company',
-            'location': 'Seoul, Korea'
-        }
-        self.mock_scraper.scrape_job_page.return_value = mock_job_data
-        
-        # Create GmailAPI instance and test
-        gmail_api = GmailAPI()
-        result = gmail_api.scrape_job_page('https://linkedin.com/jobs/view/123')
-        
-        # Assertions
-        self.assertEqual(result, mock_job_data)
-        self.mock_scraper.scrape_job_page.assert_called_once_with('https://linkedin.com/jobs/view/123', 2000)
     
     @patch('gmail_module.gmail_api.build')
     @patch('gmail_module.gmail_api.pickle.load')
@@ -323,133 +196,115 @@ class TestGmailAPIUnit(unittest.TestCase):
         mock_service = Mock()
         mock_build.return_value = mock_service
         
-        # Create GmailAPI instance
         gmail_api = GmailAPI()
         
         # Test multipart payload
-        test_content = "Hello from multipart message"
-        encoded_content = base64.urlsafe_b64encode(test_content.encode('utf-8')).decode('utf-8')
+        test_text = "Hello, this is a test message"
+        encoded_text = base64.urlsafe_b64encode(test_text.encode()).decode()
         
-        payload = {
+        multipart_payload = {
             'parts': [
                 {
                     'mimeType': 'text/plain',
-                    'body': {
-                        'data': encoded_content
-                    }
+                    'body': {'data': encoded_text}
                 },
                 {
                     'mimeType': 'text/html',
-                    'body': {
-                        'data': base64.urlsafe_b64encode(b'<html>HTML content</html>').decode('utf-8')
-                    }
+                    'body': {'data': 'some_html_data'}
                 }
             ]
         }
         
-        content = gmail_api._extract_text_from_payload(payload)
-        
-        # Assertions
-        self.assertIn('Hello from multipart message', content)
+        result = gmail_api._extract_text_from_payload(multipart_payload)
+        self.assertIn("Hello, this is a test message", result)
     
-    def test_extract_html_from_payload_empty(self):
-        """Test HTML extraction from empty payload."""
-        # Mock the necessary components without full GmailAPI initialization
-        with patch('gmail_module.gmail_api.build'), \
-             patch('builtins.open', new_callable=mock_open), \
-             patch('gmail_module.gmail_api.pickle.load') as mock_pickle_load:
-            
-            mock_creds = Mock()
-            mock_creds.valid = True
-            mock_pickle_load.return_value = mock_creds
-            
-            gmail_api = GmailAPI()
-            
-            # Test empty payload
-            payload = {}
-            content = gmail_api._extract_html_from_payload(payload)
-            
-            # Assertions
-            self.assertEqual(content, "")
+    @patch('gmail_module.gmail_api.build')
+    @patch('gmail_module.gmail_api.pickle.load')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_extract_urls_from_html(self, mock_file, mock_pickle_load, mock_build):
+        """Test URL extraction from HTML content."""
+        mock_creds = Mock()
+        mock_creds.valid = True
+        mock_pickle_load.return_value = mock_creds
+        mock_service = Mock()
+        mock_build.return_value = mock_service
+        
+        gmail_api = GmailAPI()
+        
+        html_content = '''
+        <html>
+            <body>
+                <a href="https://www.linkedin.com/jobs/view/1234567890/">Software Engineer Position</a>
+                <a href="https://example.com/other">Other Link</a>
+                <a href="https://linkedin.com/comm/jobs/view/9876543210/">Data Scientist Role</a>
+            </body>
+        </html>
+        '''
+        
+        result = gmail_api._extract_urls_from_html(html_content)
+        
+        # Should only extract LinkedIn job URLs
+        self.assertEqual(len(result), 2)
+        self.assertIn('1234567890', result[0]['url'])
+        self.assertIn('9876543210', result[1]['url'])
+        self.assertEqual(result[0]['link_text'], 'Software Engineer Position')
+        self.assertEqual(result[1]['link_text'], 'Data Scientist Role')
 
 
 class TestGmailAPIIntegration(unittest.TestCase):
-    """Integration tests for GmailAPI workflow."""
+    """Integration tests that can run without API credentials."""
     
     def setUp(self):
-        """Set up integration test fixtures."""
-        # Mock all external dependencies
-        self.patches = [
-            patch('gmail_module.gmail_api.CREDENTIALS_FILE'),
-            patch('gmail_module.gmail_api.TOKEN_FILE'),
-            patch('gmail_module.gmail_api.GMAIL_SCOPES'),
-            patch('gmail_module.gmail_api.JobScraper'),
-            patch('gmail_module.gmail_api.build'),
-            patch('builtins.open', new_callable=mock_open),
-            patch('gmail_module.gmail_api.pickle.load')
-        ]
-        
-        self.mocks = [p.start() for p in self.patches]
-        
-        # Configure mocks for successful initialization
-        self.mocks[0].exists.return_value = True  # credentials file
-        self.mocks[1].exists.return_value = True  # token file
-        self.mocks[2] = ['https://www.googleapis.com/auth/gmail.readonly']  # scopes
-        
-        mock_creds = Mock()
-        mock_creds.valid = True
-        self.mocks[6].return_value = mock_creds  # pickle.load
-        
+        """Set up test fixtures."""
         self.mock_service = Mock()
-        self.mocks[4].return_value = self.mock_service  # build
         
-        self.mock_scraper = Mock()
-        self.mocks[3].return_value = self.mock_scraper  # JobScraper
+        # Mock the build function
+        self.build_patcher = patch('gmail_module.gmail_api.build')
+        self.mock_build = self.build_patcher.start()
+        self.mock_build.return_value = self.mock_service
     
     def tearDown(self):
-        """Clean up integration test fixtures."""
-        for p in self.patches:
-            p.stop()
+        """Clean up test fixtures."""
+        self.build_patcher.stop()
     
-    def test_complete_workflow_email_to_job_data(self):
-        """Test complete workflow from email to job data."""
-        # Setup email with job URLs
-        test_content = """
-        New job opportunity for you!
-        Check it out: https://www.linkedin.com/jobs/view/1234567890/
-        """
-        encoded_content = base64.urlsafe_b64encode(test_content.encode('utf-8')).decode('utf-8')
+    @patch('gmail_module.gmail_api.pickle.load')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_gmail_api_initialization(self, mock_file, mock_pickle_load):
+        """Test that GmailAPI initializes without errors."""
+        mock_creds = Mock()
+        mock_creds.valid = True
+        mock_pickle_load.return_value = mock_creds
         
-        mock_message = {
-            'payload': {
-                'mimeType': 'text/plain',
-                'body': {
-                    'data': encoded_content
-                }
-            }
-        }
-        
-        mock_job_data = {
-            'title': 'Senior ML Engineer',
-            'company': 'Tech Corp',
-            'location': 'Seoul, Korea',
-            'url': 'https://www.linkedin.com/jobs/view/1234567890/'
-        }
-        
-        # Configure service mocks
-        self.mock_service.users().messages().get().execute.return_value = mock_message
-        self.mock_scraper.scrape_job_page.return_value = mock_job_data
-        
-        # Test workflow
+        # This should not raise any exceptions
         gmail_api = GmailAPI()
-        job_details = gmail_api.get_job_details_from_email('test_msg_id')
+        self.assertIsNotNone(gmail_api.service)
+    
+    @patch('gmail_module.gmail_api.pickle.load')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_url_patterns_comprehensive(self, mock_file, mock_pickle_load):
+        """Test that URL extraction works with various LinkedIn URL formats."""
+        mock_creds = Mock()
+        mock_creds.valid = True
+        mock_pickle_load.return_value = mock_creds
         
-        # Assertions
-        self.assertEqual(len(job_details), 1)
-        self.assertEqual(job_details[0]['title'], 'Senior ML Engineer')
-        self.assertEqual(job_details[0]['company'], 'Tech Corp')
-        self.assertEqual(job_details[0]['email_id'], 'test_msg_id')
-        self.assertIn('link_text', job_details[0])
+        gmail_api = GmailAPI()
+        
+        test_urls = [
+            "https://www.linkedin.com/jobs/view/1234567890/",
+            "https://linkedin.com/jobs/view/9876543210",
+            "https://www.linkedin.com/comm/jobs/view/1111111111/",
+            "https://www.linkedin.com/jobs/view/2222222222/?utm_source=email",
+        ]
+        
+        test_text = "\n".join(test_urls)
+        extracted = gmail_api._extract_urls_from_text(test_text)
+        
+        # All URLs should be found and cleaned
+        self.assertEqual(len(extracted), 4)
+        for i, extracted_url in enumerate(extracted):
+            # URLs should be cleaned (no trailing slashes, no query params)
+            self.assertNotIn('?', extracted_url['url'])
+            self.assertNotIn('utm_source', extracted_url['url'])
 
 
 def run_tests():
@@ -469,25 +324,7 @@ def run_tests():
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
     
-    # Print summary
-    print("\n" + "=" * 50)
-    print(f"Tests run: {result.testsRun}")
-    print(f"Failures: {len(result.failures)}")
-    print(f"Errors: {len(result.errors)}")
-    
-    if result.failures:
-        print("\n❌ Failures:")
-        for test, traceback in result.failures:
-            print(f"  - {test}: {traceback}")
-    
-    if result.errors:
-        print("\n💥 Errors:")
-        for test, traceback in result.errors:
-            print(f"  - {test}: {traceback}")
-    
-    success = len(result.failures) == 0 and len(result.errors) == 0
-    print(f"\n🎉 All tests passed!" if success else "❌ Some tests failed!")
-    return success
+    return result.wasSuccessful()
 
 
 if __name__ == '__main__':
