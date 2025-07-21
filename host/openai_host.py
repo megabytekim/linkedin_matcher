@@ -127,51 +127,107 @@ Current Session Memory: {memory_summary}
 Tool Mode: {self.tool_mode}
 
 Your capabilities:
-- Search Gmail for LinkedIn job emails
+- Search Gmail for job-related emails using any Gmail search query
 - Extract job URLs from emails  
 - Scrape LinkedIn job postings for complete details
 - Analyze and recommend job opportunities
 - Apply labels to emails for organization
 
+**Gmail Search Guidelines:**
+- The `list_emails(query, max_results)` tool can take any Gmail search query.
+- If `query` is omitted or empty, it will return the most recent emails from all senders.
+- If `query` is provided, it will filter emails using that query (e.g., `from:linkedin.com`, `from:naver.com`, `subject:면접`, `label:INBOX`).
+- Always show only the top 5~10 emails in your response. If the user wants to see more, offer to show additional emails.
+- Example queries:
+  - `from:linkedin.com` (LinkedIn job alerts)
+  - `from:naver.com` (Naver emails)
+  - `subject:면접` (emails with '면접' in the subject)
+  - `label:INBOX` (all inbox emails)
+  - `from:daum.net` (Daum emails)
+
+CRITICAL DISPLAY GUIDELINES:
+1. **ALWAYS SHOW TOOL RESULTS TO THE USER** - Don't just say "I found X emails"
+2. **FORMAT EMAIL LISTS** clearly with:
+   - Email subject (truncated if needed)
+   - Sender information  
+   - Date/time
+   - Email ID for reference
+3. **DISPLAY JOB URLS** when extracted from emails
+4. **SHOW SCRAPED JOB DETAILS** in organized format
+5. **BE TRANSPARENT** about what tools you're using and what data you're processing
+
 IMPORTANT WORKFLOW GUIDELINES:
 1. When asked to find and scrape jobs, follow this exact sequence:
    a) Use list_emails() to search for job-related emails
-   b) For each email found, use extract_job_urls() with the ACTUAL email_id from step a
-   c) For each URL extracted, use scrape_job() to get complete details
+   b) **DISPLAY the email list to the user** (show only the top 5~10)
+   c) For each email found, use extract_job_urls() with the ACTUAL email_id from step a
+   d) **SHOW the extracted URLs to the user**
+   e) For each URL extracted, use scrape_job() to get complete details
+   f) **PRESENT the scraped job details in organized format**
    
 2. ALWAYS use REAL email IDs from list_emails() results - never make up IDs like "latest_email_id_1"
 
 3. For complex requests like "find emails and scrape jobs", break them down into steps:
-   - First: Search emails
-   - Second: Extract URLs from found emails
-   - Third: Scrape jobs from extracted URLs
+   - First: Search emails and SHOW the list (top 5~10)
+   - Second: Extract URLs from found emails and DISPLAY them
+   - Third: Scrape jobs from extracted URLs and PRESENT results
 
 4. When multiple emails are found, process them systematically:
-   - Extract URLs from each email individually
+   - Show the complete email list first (top 5~10)
+   - Extract URLs from each email individually  
+   - Display progress as you work through each email
    - Scrape each job URL found
    - Provide a comprehensive summary
 
 5. If you already have emails in memory, you can reference them:
-   - "I found X emails earlier, let me extract URLs from them"
-   - "Based on the emails we found, here are the job opportunities"
+   - "I found X emails earlier, here they are again:"
+   - "Based on the emails we found, here are the job opportunities:"
 
 6. **RECOMMENDED**: For complex requests like "find emails and scrape all jobs", use the auto_job_search_workflow() tool which handles the entire process automatically and correctly.
 
 7. **CRITICAL**: When using individual tools, always copy the exact email_id and URL values from previous tool results - never invent or simplify them.
 
+RESPONSE FORMAT EXAMPLES:
+
+For list_emails:
+```
+📧 Found 3 LinkedIn job emails:
+
+1. **"5 new jobs for software"**
+   From: LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>
+   Date: Mon, 21 Jul 2025 06:57:09 +0000 (UTC)
+   ID: 1982bc5ac51ec213
+
+2. **"Machine Learning Engineer: CLO Virtual Fashion"** 
+   From: LinkedIn Job Alerts <jobalerts-noreply@linkedin.com>
+   Date: Mon, 21 Jul 2025 04:57:08 +0000 (UTC)
+   ID: 1982b57d33701719
+
+[Continue for all emails...]
+```
+
+For extract_job_urls:
+```
+🔗 Extracted job URLs from email "5 new jobs for software":
+• https://www.linkedin.com/jobs/view/3842851234/
+• https://www.linkedin.com/jobs/view/3842851235/
+• https://www.linkedin.com/jobs/view/3842851236/
+```
+
 Key principles:
 1. Always be helpful and provide actionable insights
 2. Use specific tools for specific tasks (don't guess)
-3. Provide clear, formatted responses with job details
-4. Ask for clarification when queries are ambiguous
-5. Explain what you're doing and why
-6. Handle errors gracefully and suggest alternatives
-7. Use actual data from previous tool calls - never invent IDs or data
+3. **ALWAYS DISPLAY tool results clearly to the user**
+4. Provide clear, formatted responses with job details
+5. Ask for clarification when queries are ambiguous
+6. Explain what you're doing and why
+7. Handle errors gracefully and suggest alternatives
+8. Use actual data from previous tool calls - never invent IDs or data
 
 When users ask about jobs:
-1. First search their Gmail for relevant emails
-2. Extract job URLs from those emails using REAL email IDs
-3. Scrape the most promising job postings
+1. First search their Gmail for relevant emails and SHOW the list (top 5~10)
+2. Extract job URLs from those emails using REAL email IDs and DISPLAY URLs
+3. Scrape the most promising job postings and PRESENT details
 4. Present results in a clear, organized format
 5. Offer to perform additional analysis or actions
 
@@ -179,7 +235,7 @@ Available tools depend on mode:
 - Local mode: Direct function calls for fastest performance
 - MCP mode: Network calls for proper separation of concerns
 
-Be conversational, helpful, and proactive in suggesting next steps."""
+Be conversational, helpful, and proactive in suggesting next steps. Most importantly: **ALWAYS SHOW THE ACTUAL DATA TO THE USER** rather than just mentioning that you found it."""
 
     def _define_mcp_tools(self) -> List[Dict[str, Any]]:
         """Define tools for OpenAI function calling."""
@@ -294,23 +350,12 @@ Be conversational, helpful, and proactive in suggesting next steps."""
                 result = await self.mcp_client.call_tool(mcp_tool_name, kwargs)
                 
                 # Process MCP result format
-                if isinstance(result, dict) and 'content' in result:
-                    # MCP returns structured content, extract text
-                    content_items = result.get('content', [])
-                    if content_items and isinstance(content_items, list):
-                        # Extract JSON from first text content
-                        for item in content_items:
-                            if item.get('type') == 'text':
-                                text_content = item.get('text', '{}')
-                                try:
-                                    parsed_result = json.loads(text_content)
-                                    return parsed_result
-                                except json.JSONDecodeError:
-                                    return text_content
-                        return content_items
-                    return result.get('content', {})
+                processed_result = self._process_mcp_result(result)
                 
-                return result
+                # Store results in session memory based on tool type
+                self._store_tool_result_in_memory(tool_name, processed_result, kwargs)
+                
+                return processed_result
             else:
                 # Use local functions
                 if tool_name == "list_emails":
@@ -345,6 +390,60 @@ Be conversational, helpful, and proactive in suggesting next steps."""
         except Exception as e:
             print(f"❌ Error executing tool {tool_name}: {e}")
             return f"Error: {str(e)}"
+    
+    def _process_mcp_result(self, result: Any) -> Any:
+        """Process MCP result format to extract the actual data."""
+        if isinstance(result, dict) and 'content' in result:
+            content_items = result.get('content', [])
+            if content_items and isinstance(content_items, list):
+                # Try to parse each content item and collect results
+                parsed_items = []
+                
+                for item in content_items:
+                    if item.get('type') == 'text':
+                        text_content = item.get('text', '{}')
+                        try:
+                            parsed_item = json.loads(text_content)
+                            parsed_items.append(parsed_item)
+                        except json.JSONDecodeError:
+                            # If it's not JSON, return the text as-is
+                            parsed_items.append(text_content)
+                
+                # If we have multiple items, return as list; single item, return the item itself
+                if len(parsed_items) == 1:
+                    return parsed_items[0]
+                elif len(parsed_items) > 1:
+                    return parsed_items
+                else:
+                    return content_items
+            return result.get('content', {})
+        
+        return result
+    
+    def _store_tool_result_in_memory(self, tool_name: str, result: Any, kwargs: dict) -> None:
+        """Store tool results in session memory for future reference."""
+        try:
+            if tool_name == "list_emails" and isinstance(result, list):
+                # Store emails in memory
+                for email in result:
+                    if isinstance(email, dict) and 'id' in email:
+                        self.session_memory['emails'][email['id']] = email
+                print(f"💾 Stored {len(result)} emails in session memory")
+                
+            elif tool_name == "extract_job_urls":
+                email_id = kwargs.get('email_id')
+                if email_id and result:
+                    self.session_memory['job_urls'][email_id] = result
+                    print(f"💾 Stored job URLs for email {email_id} in session memory")
+                    
+            elif tool_name == "scrape_job":
+                url = kwargs.get('url')
+                if url and result:
+                    self.session_memory['scraped_jobs'][url] = result
+                    print(f"💾 Stored scraped job data for {url} in session memory")
+                    
+        except Exception as e:
+            print(f"⚠️  Warning: Failed to store result in memory: {e}")
     
     def _map_to_mcp_tool_name(self, openai_function_name: str) -> str:
         """Map OpenAI function names to MCP tool names."""

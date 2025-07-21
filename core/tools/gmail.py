@@ -93,7 +93,10 @@ def get_job_details_from_email(email_id: str):
 @app.tool()
 def mcp_list_emails(query: str = "from:linkedin.com", max_results: int = 10):
     """List Gmail messages matching the query."""
-    return list_emails(query, max_results)
+    emails = list_emails(query, max_results)
+    import json
+    # 한글이 깨지지 않도록 ensure_ascii=False로 직렬화
+    return [json.dumps(email, ensure_ascii=False) for email in emails]
 
 @app.tool()
 def mcp_extract_job_urls(email_id: str):
