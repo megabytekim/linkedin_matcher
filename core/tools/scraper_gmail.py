@@ -1,8 +1,8 @@
 """
 Gmail + Scraper Integration MCP Tools
 
-MCP tool registrations for scraper tools that work with Gmail data.
-These tools combine data extraction with scraping functionality.
+Action-oriented MCP tools that combine Gmail data extraction with LinkedIn scraping.
+These tools represent high-level agent capabilities for processing LinkedIn emails.
 """
 
 import sys
@@ -22,7 +22,7 @@ from scraper_module.tools.gmail_scraper import (
 )
 
 @app.tool()
-async def mcp_get_job_details_from_email(email_id: str):
+async def get_job_details_from_email(email_id: str):
     """
     Extract job URLs from a specific email and scrape complete job details.
     
@@ -32,11 +32,11 @@ async def mcp_get_job_details_from_email(email_id: str):
     Returns:
         List of complete job data dictionaries with scraped details
     """
-    result = get_job_details_from_email(email_id)
-    return result
+    from scraper_module.tools.gmail_scraper import get_job_details_from_email as get_details
+    return get_details(email_id)
 
 @app.tool()
-async def mcp_scrape_jobs_from_email_urls(email_id: str, urls: List[str]):
+async def scrape_jobs_from_email_urls(email_id: str, urls: List[str]):
     """
     Scrape job details from a list of URLs with email context.
     
@@ -47,35 +47,35 @@ async def mcp_scrape_jobs_from_email_urls(email_id: str, urls: List[str]):
     Returns:
         List of scraped job data dictionaries
     """
-    result = scrape_jobs_from_email_urls(email_id, urls)
-    return result
+    from scraper_module.tools.gmail_scraper import scrape_jobs_from_email_urls as scrape_from_email
+    return scrape_from_email(email_id, urls)
 
 @app.tool()
-async def mcp_scrape_jobs_from_url_list(urls: List[str], context: Dict[str, Any] = None):
+async def scrape_jobs_from_url_list(urls: List[str]):
     """
-    Scrape job details from a list of URLs with optional context.
+    Scrape job details from a list of LinkedIn URLs.
     
     Args:
         urls: List of LinkedIn job URLs to scrape
-        context: Optional context dictionary (e.g., source info)
         
     Returns:
         List of scraped job data dictionaries
     """
-    result = scrape_jobs_from_url_list(urls, context)
-    return result
+    from scraper_module.tools.gmail_scraper import scrape_jobs_from_url_list as scrape_urls
+    return scrape_urls(urls)
 
 @app.tool()
-async def mcp_process_linkedin_emails(email_ids: List[str], max_jobs_per_email: int = 5):
+async def process_linkedin_emails(query: str = "from:linkedin.com", max_results: int = 5, max_content_length: int = 2000):
     """
-    Process multiple LinkedIn emails and extract all job details.
+    Complete workflow: Find LinkedIn emails, extract URLs, scrape job details.
     
     Args:
-        email_ids: List of Gmail message IDs
-        max_jobs_per_email: Maximum number of jobs to scrape per email
+        query: Gmail search query for LinkedIn emails
+        max_results: Maximum number of emails to process
+        max_content_length: Maximum content length for job descriptions
         
     Returns:
-        Dictionary with processed results summary and job details
+        Dictionary with email data and scraped job details
     """
-    result = process_linkedin_emails(email_ids, max_jobs_per_email)
-    return result 
+    from scraper_module.tools.gmail_scraper import process_linkedin_emails as process_emails
+    return process_emails(query, max_results, max_content_length) 

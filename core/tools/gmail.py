@@ -1,28 +1,34 @@
 """
 Gmail Tools for LinkedIn Job Scraper
 
-Pure functions for Gmail operations that are registered with the main MCP server.
-These tools focus on pure data extraction from Gmail without scraping dependencies.
+Action-oriented MCP tools that directly interact with Gmail API.
+These tools represent specific agent capabilities for email processing.
 """
 
+import json
 from gmail_module.gmail_api import GmailAPI
 from core.server_app import app
 
-def list_emails(query: str = "from:linkedin.com", max_results: int = 10):
+# Direct MCP tools without unnecessary wrapper layers
+@app.tool()
+async def list_emails(query: str = "from:linkedin.com", max_results: int = 10):
     """
     List Gmail messages matching the query.
     
     Args:
-        query: Gmail search query (e.g., "from:linkedin.com", "subject:job")
+        query: Gmail search query (e.g., "from:linkedin.com", "subject:job") 
         max_results: Maximum number of messages to return (1-50)
         
     Returns:
         List of message dictionaries with id, subject, from, date, snippet
     """
     gmail = GmailAPI()
-    return gmail.list_messages(query, max_results)
+    emails = gmail.list_messages(query, max_results)
+    # 한글이 깨지지 않도록 ensure_ascii=False로 직렬화
+    return [json.dumps(email, ensure_ascii=False) for email in emails]
 
-def extract_job_urls(email_id: str):
+@app.tool()
+async def extract_job_urls(email_id: str):
     """
     Extract LinkedIn job URLs from a specific email.
     
@@ -35,7 +41,8 @@ def extract_job_urls(email_id: str):
     gmail = GmailAPI()
     return gmail.extract_job_urls(email_id)
 
-def get_message_content(email_id: str):
+@app.tool()
+async def get_message_content(email_id: str):
     """
     Get the full text content of a Gmail message.
     
@@ -48,7 +55,8 @@ def get_message_content(email_id: str):
     gmail = GmailAPI()
     return gmail.get_message_content(email_id)
 
-def add_label(email_id: str, label: str):
+@app.tool()
+async def add_label(email_id: str, label: str):
     """
     Add a label to a Gmail message.
     
@@ -60,32 +68,4 @@ def add_label(email_id: str, label: str):
         True if successful, False otherwise
     """
     gmail = GmailAPI()
-    return gmail.add_label(email_id, label)
-
-# Register tools with the main MCP server using FastMCP style
-@app.tool()
-async def mcp_list_emails(query: str = "from:linkedin.com", max_results: int = 10):
-    """List Gmail messages matching the query."""
-    emails = list_emails(query, max_results)
-    
-    import json
-    # 한글이 깨지지 않도록 ensure_ascii=False로 직렬화
-    return [json.dumps(email, ensure_ascii=False) for email in emails]
-
-@app.tool()
-async def mcp_extract_job_urls(email_id: str):
-    """Extract LinkedIn job URLs from a specific email."""
-    urls = extract_job_urls(email_id)
-    return urls
-
-@app.tool()
-async def mcp_get_message_content(email_id: str):
-    """Get full content of an email."""
-    content = get_message_content(email_id)
-    return content
-
-@app.tool()
-async def mcp_add_label(email_id: str, label: str):
-    """Apply a label to a Gmail message."""
-    result = add_label(email_id, label)
-    return result 
+    return gmail.add_label(email_id, label) 

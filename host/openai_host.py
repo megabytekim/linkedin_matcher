@@ -450,12 +450,12 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
     
     def _map_to_mcp_tool_name(self, openai_function_name: str) -> str:
         """Map OpenAI function names to MCP tool names."""
-        # OpenAI function names → MCP tool names
+        # OpenAI function names → MCP tool names (after removing mcp_ prefix anti-pattern)
         mapping = {
-            "list_emails": "mcp_list_emails",
-            "extract_job_urls": "mcp_extract_job_urls", 
-            "scrape_job": "mcp_scrape_job",
-            "auto_job_search_workflow": "mcp_process_linkedin_emails"  # Use the proper combined tool
+            "list_emails": "list_emails",
+            "extract_job_urls": "extract_job_urls", 
+            "scrape_job": "scrape_job",
+            "auto_job_search_workflow": "process_linkedin_emails"  # Use the proper combined tool
         }
         return mapping.get(openai_function_name, openai_function_name)
     
