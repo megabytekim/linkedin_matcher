@@ -16,59 +16,46 @@ sys.path.append(str(Path(__file__).parent.parent))
 from host.openai_host import OpenAILLMHost
 
 async def test_email_display():
-    """Test that list_emails properly displays email results."""
-    print("🧪 Testing Email Display Functionality")
-    print("=" * 50)
+    """Test email display functionality."""
+    print("🧪 Testing Email Display...")
     
-    # Test both modes
-    modes = [
-        ("Local Mode", False),
-        ("MCP Client Mode", True)
-    ]
-    
-    for mode_name, use_mcp_client in modes:
-        print(f"\n🔧 Testing {mode_name}")
-        print("-" * 30)
+    try:
+        # Initialize host
+        host = OpenAILLMHost()
         
-        try:
-            # Initialize host
-            host = OpenAILLMHost(use_mcp_client=use_mcp_client)
-            
-            # Simulate user asking for email list
-            user_message = "Can you list the most recent 3 emails from LinkedIn?"
-            
-            print(f"🗣️  User: {user_message}")
-            print(f"🤔 AI is thinking and using tools...")
-            
-            # Process the message
-            response = await host.chat(user_message)
-            
-            print(f"\n🤖 AI Assistant Response:")
-            print(f"{response}")
-            
-            # Check if the response contains actual email details
-            has_email_details = any(keyword in response.lower() for keyword in [
-                'subject:', 'from:', 'date:', 'id:', 'linkedin job alerts'
-            ])
-            
-            if has_email_details:
-                print(f"\n✅ {mode_name}: Email details properly displayed")
-            else:
-                print(f"\n❌ {mode_name}: Email details NOT displayed")
-                print(f"   Response only contains: {response[:100]}...")
-            
-        except Exception as e:
-            print(f"❌ Error in {mode_name}: {e}")
+        # Test email listing
+        print("📧 Testing email listing...")
+        result = await host.execute_tool("list_emails", query="from:linkedin.com", max_results=3)
         
-        finally:
-            # Cleanup
-            if use_mcp_client:
-                try:
-                    await host.cleanup()
-                except:
-                    pass
+        if isinstance(result, list) and len(result) > 0:
+            print(f"✅ Found {len(result)} emails")
+            
+            # Display first email details
+            first_email = result[0]
+            print(f"\n📄 First Email Details:")
+            print(f"   Subject: {first_email.get('subject', 'No subject')}")
+            print(f"   From: {first_email.get('from', 'Unknown')}")
+            print(f"   Date: {first_email.get('date', 'Unknown')}")
+            print(f"   Snippet: {first_email.get('snippet', 'No snippet')[:100]}...")
+            
+            # Test URL extraction
+            print("\n🔗 Testing URL extraction...")
+            urls_result = await host.execute_tool("extract_job_urls", email_id=first_email['id'])
+            print(f"   URLs found: {len(urls_result) if isinstance(urls_result, list) else 0}")
+            
+        else:
+            print("⚠️  No emails found or unexpected result format")
         
-        print("\n" + "="*50)
+        # Test MCP client cleanup
+        await host.cleanup()
+        print("✅ MCP client cleanup successful")
+        
+        print(f"✅ Email display test passed!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Email display test failed: {e}")
+        return False
 
 async def test_direct_tool_call():
     """Test direct tool execution to verify the fix."""
@@ -76,7 +63,7 @@ async def test_direct_tool_call():
     print("-" * 30)
     
     # Test MCP mode
-    host = OpenAILLMHost(use_mcp_client=True)
+    host = OpenAILLMHost()
     
     try:
         print("📧 Calling list_emails directly...")

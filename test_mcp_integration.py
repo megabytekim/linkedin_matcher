@@ -16,51 +16,33 @@ sys.path.append(str(Path(__file__).parent))
 from host.openai_host import OpenAILLMHost
 
 async def test_mcp_integration():
-    """Test MCP Client integration with real tool calls."""
-    print("🧪 Testing MCP Client Integration")
-    print("=" * 50)
+    """Test MCP client-server integration."""
+    print("🧪 Testing MCP Integration...")
     
-    # Test both modes for comparison
-    modes = [
-        ("Local Mode", False),  # Direct import
-        ("MCP Client Mode", True)  # MCP Client → MCP Server
-    ]
-    
-    for mode_name, use_mcp_client in modes:
-        print(f"\n🔧 Testing {mode_name}")
-        print("-" * 30)
+    try:
+        # Initialize host
+        host = OpenAILLMHost()
         
-        try:
-            # Initialize host
-            host = OpenAILLMHost(use_mcp_client=use_mcp_client)
-            
-            # Test tool execution
-            print("📧 Testing list_emails tool...")
-            result = await host.execute_tool(
-                "list_emails",
-                query="from:linkedin.com",
-                max_results=2
-            )
-            
-            if isinstance(result, list):
-                print(f"✅ Found {len(result)} emails")
-                for i, email in enumerate(result[:2]):
-                    print(f"   {i+1}. {email.get('subject', 'No subject')[:50]}...")
-            else:
-                print(f"📄 Result: {str(result)[:100]}...")
-            
-            print()
-            
-        except Exception as e:
-            print(f"❌ Error in {mode_name}: {e}")
+        # Test basic functionality
+        print("✅ Host initialized successfully")
         
-        finally:
-            # Cleanup
-            if use_mcp_client:
-                try:
-                    await host.cleanup()
-                except:
-                    pass
+        # Test tool execution
+        print("🔧 Testing tool execution...")
+        
+        # Test list_emails tool
+        result = await host.execute_tool("list_emails", query="from:linkedin.com", max_results=2)
+        print(f"📧 List emails result: {type(result)} - {len(result) if isinstance(result, list) else 'N/A'}")
+        
+        # Test MCP client cleanup
+        await host.cleanup()
+        print("✅ MCP client cleanup successful")
+        
+        print(f"✅ MCP Client-Server mode test passed!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ MCP Client-Server mode test failed: {e}")
+        return False
 
 async def test_mcp_client_only():
     """Test MCP Client directly (without OpenAI Host)."""
@@ -69,7 +51,7 @@ async def test_mcp_client_only():
     
     from host.mcp_client import MCPClient
     
-    client = MCPClient(["python", "core/serve.py"])
+    client = MCPClient(["python", "-m", "core.serve"])
     
     try:
         await client.start()
@@ -80,7 +62,7 @@ async def test_mcp_client_only():
         
         # Test a tool
         if tools:
-            result = await client.call_tool("mcp_list_emails", {
+            result = await client.call_tool("list_emails", {
                 "query": "from:linkedin.com",
                 "max_results": 2
             })
@@ -102,9 +84,16 @@ async def main():
     await test_mcp_client_only()
     
     # Test 2: OpenAI Host integration
-    await test_mcp_integration()
+    success = await test_mcp_integration()
     
-    print("\n✅ All tests completed!")
+    if success:
+        print("\n✅ All tests completed successfully!")
+    else:
+        print("\n❌ Some tests failed!")
+        return 1
+    
+    return 0
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code) 

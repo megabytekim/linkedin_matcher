@@ -12,7 +12,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from host.openai_host import OpenAILLMHost
 
 async def test_queries():
-    host = OpenAILLMHost(use_mcp_client=True)
+    host = OpenAILLMHost()
     try:
         for query in [
             '',
