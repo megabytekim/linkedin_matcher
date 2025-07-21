@@ -48,7 +48,7 @@ ENV/
 
 # Test output
 test_output/
-*.output
+*.output 
 
 # CI/CD and Testing
 .pytest_cache/

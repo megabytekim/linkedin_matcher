@@ -16,7 +16,7 @@ async def list_emails(query: str = "", max_results: int = 10):
     List Gmail messages matching the query.
     
     Args:
-        query: Gmail search query (e.g., "from:linkedin.com", "subject:job") 
+        query: Gmail search query (e.g., "from:linkedin.com", "subject:job")
         max_results: Maximum number of messages to return (1-50)
         
     Returns:
@@ -68,4 +68,4 @@ async def add_label(email_id: str, label: str):
         True if successful, False otherwise
     """
     gmail = GmailAPI()
-    return gmail.add_label(email_id, label) 
+    return gmail.add_label(email_id, label)

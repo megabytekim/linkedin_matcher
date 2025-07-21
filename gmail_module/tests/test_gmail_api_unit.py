@@ -26,7 +26,7 @@ class TestGmailAPIUnit(unittest.TestCase):
         self.build_patcher = patch('gmail_module.gmail_api.build')
         self.mock_build = self.build_patcher.start()
         self.mock_build.return_value = self.mock_service
-        
+    
     def tearDown(self):
         """Clean up test fixtures."""
         self.build_patcher.stop()
@@ -120,7 +120,7 @@ class TestGmailAPIUnit(unittest.TestCase):
         
         self.assertEqual(result, test_content)
     
-    @patch('gmail_module.gmail_api.pickle.load') 
+    @patch('gmail_module.gmail_api.pickle.load')
     @patch('builtins.open', new_callable=mock_open)
     def test_extract_job_urls_from_text(self, mock_file, mock_pickle_load):
         """Test LinkedIn URL extraction from message content."""
@@ -228,9 +228,9 @@ class TestGmailAPIUnit(unittest.TestCase):
         mock_pickle_load.return_value = mock_creds
         mock_service = Mock()
         mock_build.return_value = mock_service
-        
+            
         gmail_api = GmailAPI()
-        
+            
         html_content = '''
         <html>
             <body>

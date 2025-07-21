@@ -153,7 +153,7 @@ IMPORTANT WORKFLOW GUIDELINES:
 
 4. When multiple emails are found, process them systematically:
    - Show the complete email list first (top 5~10)
-   - Extract URLs from each email individually  
+   - Extract URLs from each email individually
    - Display progress as you work through each email
    - Scrape each job URL found
    - Provide a comprehensive summary
@@ -360,7 +360,7 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
             print(f"✅ [{self.tool_call_counter}] {tool_name} completed in {duration:.2f}s")
             
             return processed_result
-                
+            
         except Exception as e:
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()

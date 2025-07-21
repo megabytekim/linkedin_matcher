@@ -57,7 +57,7 @@ class GmailAPI:
         # Build the Gmail service
         self.service = build('gmail', 'v1', credentials=creds)
         print("✅ Successfully authenticated with Gmail API")
-
+    
     def list_messages(self, query: str = '', max_results: int = 10) -> List[Dict[str, str]]:
         """
         List Gmail messages based on query.
@@ -75,7 +75,7 @@ class GmailAPI:
             
             # Search for messages
             results = self.service.users().messages().list(
-                userId='me',
+                userId='me', 
                 q=search_query,
                 maxResults=max_results
             ).execute()
@@ -90,7 +90,7 @@ class GmailAPI:
             for message in messages:
                 # Get detailed message info
                 msg_detail = self.service.users().messages().get(
-                    userId='me',
+                    userId='me', 
                     id=message['id'],
                     format='metadata',
                     metadataHeaders=['Subject', 'From', 'Date']
@@ -114,7 +114,7 @@ class GmailAPI:
         except HttpError as error:
             print(f"❌ Gmail API error: {error}")
             return []
-
+    
     def get_message_content(self, message_id: str) -> Optional[str]:
         """
         Get the full text content of a message.
@@ -146,7 +146,7 @@ class GmailAPI:
         except HttpError as error:
             print(f"❌ Error getting message content: {error}")
             return None
-
+    
     def _extract_text_from_payload(self, payload: Dict) -> str:
         """Extract plain text from message payload."""
         content = ""
@@ -190,7 +190,7 @@ class GmailAPI:
                 content += decoded
         
         return content.strip()
-
+    
     def extract_job_urls(self, message_id: str) -> List[Dict[str, str]]:
         """
         Extract LinkedIn job URLs from email content.
@@ -242,7 +242,7 @@ class GmailAPI:
         except Exception as error:
             print(f"❌ Error extracting job URLs: {error}")
             return []
-
+    
     def _get_or_create_label(self, label_name: str) -> Optional[str]:
         """Get existing label or create new one."""
         try:
@@ -274,7 +274,7 @@ class GmailAPI:
         except HttpError as error:
             print(f"❌ Error managing label: {error}")
             return None
-
+    
     def add_label(self, message_id: str, label_name: str) -> bool:
         """
         Add a label to a message.
@@ -305,7 +305,7 @@ class GmailAPI:
         except HttpError as error:
             print(f"❌ Error adding label: {error}")
             return False
-
+    
     def _extract_urls_from_text(self, text: str) -> List[Dict[str, str]]:
         """Extract LinkedIn job URLs from plain text."""
         job_urls = []
@@ -329,7 +329,7 @@ class GmailAPI:
                 })
         
         return job_urls
-
+    
     def _extract_urls_from_html(self, html: str) -> List[Dict[str, str]]:
         """Extract LinkedIn job URLs from HTML content."""
         job_urls = []
@@ -355,7 +355,7 @@ class GmailAPI:
                     job_urls.append({
                         'url': clean_url,
                         'link_text': link_text
-                    })
+                        })
         
         except Exception as e:
             print(f"⚠️ Error parsing HTML: {e}")
