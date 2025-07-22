@@ -1,6 +1,7 @@
 # 🏷️ 버전 관리 가이드
 
 ## 📋 현재 버전
+- **v2.0.0** - MCP-only, Claude Desktop server (2025-07-22)
 - **v1.0.0** - Initial release (2025-07-19)
 
 ## 🎯 버전 관리 정책
@@ -108,6 +109,13 @@ git push origin v1.1.0
 - ✅ Gmail API integration
 - ✅ Unit tests and integration tests
 - ✅ Code quality checks
+
+### v2.0.0 (2025-07-22) - MCP-Only Claude Desktop Server
+- 🎯 MCP-only architecture (no local/CLI mode)
+- 🖥️ Claude Desktop integration only
+- 🧹 Removed all local tool/CLI code
+- 🧪 All tests passing
+- 📄 Documentation and guides updated
 
 ## 🔄 다음 버전 계획
 

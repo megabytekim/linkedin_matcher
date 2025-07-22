@@ -438,8 +438,9 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
     async def chat(self, user_message: str) -> str:
         """Process a user message through OpenAI GPT-4 with tool access."""
         self.prompt_counter += 1
-        self.last_prompt_tool_log = []
+        self.last_prompt_tool_log = []  # Always reset at the start of each prompt
         self.last_prompt_scraped_jobs = {}
+        tool_calls_this_prompt = []  # Collect all tool call logs for this prompt
         try:
             # Add user message to conversation
             messages = [
@@ -481,14 +482,16 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
                         "name": function_name,
                         "content": json.dumps(result, default=str)
                     })
-                    # Track tool log for this prompt
+                    # Track tool log for this prompt (collect all, not just last)
                     if self.tool_call_log:
-                        self.last_prompt_tool_log.append(self.tool_call_log[-1])
+                        tool_calls_this_prompt.append(self.tool_call_log[-1])
                     # Track scraped jobs for this prompt
                     if function_name == "scrape_job" and result:
                         url = function_args.get("url")
                         if url:
                             self.last_prompt_scraped_jobs[url] = result
+                # After all tool calls, set last_prompt_tool_log to all collected logs
+                self.last_prompt_tool_log = tool_calls_this_prompt
                 
                 # Get final response with tool results
                 final_messages = messages + [

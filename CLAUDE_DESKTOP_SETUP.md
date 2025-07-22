@@ -1,5 +1,9 @@
 # Claude Desktop MCP 설정 가이드
 
+> **v2.0.0 MCP-Only**
+>
+> 이 프로젝트는 이제 Claude Desktop MCP 서버 전용입니다. 로컬/CLI 모드는 지원하지 않습니다. 반드시 Claude Desktop에서 MCP 서버로만 사용하세요.
+
 이 가이드는 LinkedIn Job Scraper 프로젝트를 Claude Desktop에서 MCP 서버로 사용하는 방법을 설명합니다.
 
 ## 🚀 빠른 설정

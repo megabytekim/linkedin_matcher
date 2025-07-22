@@ -1,5 +1,9 @@
 # LinkedIn Job Matcher
 
+> **Milestone: v2.0.0 — MCP-Only, Claude Desktop Server**
+>
+> This project is now a pure Claude Desktop MCP server. Local/CLI mode is no longer supported. All usage is via MCP (stdio) for Claude Desktop or compatible MCP clients.
+
 An AI-powered job search assistant that automatically finds, extracts, and analyzes LinkedIn job opportunities from your Gmail inbox using GPT-4 and advanced web scraping.
 
 ## 🚀 Features
