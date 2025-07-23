@@ -544,6 +544,48 @@ Be conversational, helpful, and proactive in suggesting next steps. Most importa
         
         return " | ".join(summary) if summary else "No data in memory"
     
+    def clear_session_memory(self):
+        """Clear all session memory data."""
+        try:
+            # Store counts for confirmation message
+            email_count = len(self.session_memory['emails'])
+            url_count = sum(len(urls) for urls in self.session_memory['job_urls'].values())
+            job_count = len(self.session_memory['scraped_jobs'])
+            workflow_count = len(self.session_memory['workflow_results'])
+            
+            # Clear all memory
+            self.session_memory = {
+                'emails': {},  # email_id -> email_data
+                'job_urls': {},  # email_id -> [urls]
+                'scraped_jobs': {},  # url -> job_data
+                'workflow_results': [],  # Complete workflow results
+                'last_query': None,  # Last Gmail query used
+                'last_emails_found': 0  # Number of emails found in last search
+            }
+            
+            # Clear conversation history
+            self.conversation_history = []
+            
+            # Clear tool call log
+            self.tool_call_log = []
+            self.tool_call_counter = 0
+            
+            # Clear prompt tracking
+            self.prompt_counter = 0
+            self.last_prompt_tool_log = []
+            self.last_prompt_scraped_jobs = {}
+            
+            print(f"🧹 Session memory cleared successfully!")
+            print(f"   📧 Removed {email_count} cached emails")
+            print(f"   🔗 Removed {url_count} extracted URLs")
+            print(f"   💼 Removed {job_count} scraped jobs")
+            print(f"   🔄 Removed {workflow_count} workflow results")
+            print(f"   💬 Cleared conversation history")
+            print(f"   📋 Cleared tool call log")
+            
+        except Exception as e:
+            print(f"❌ Error clearing session memory: {e}")
+    
     def save_tool_call_log(self):
         """Save tool call log to file."""
         try:
@@ -703,6 +745,7 @@ async def main():
     print("   • Type 'tools' or 'log' or '로그' to see tool call history")
     print("   • Type 'raw data' or '원본' to see complete scraped job data")
     print("   • Type 'save logs' or '로그 저장' to save all logs immediately")
+    print("   • Type 'clear' or '클리어' to clear all session memory")
     print("   • Type 'quit' to exit and save all logs\n")
     
     while True:
@@ -741,6 +784,11 @@ async def main():
                 host.save_tool_call_log()
                 host.save_scraped_jobs()
                 host.save_detailed_logs()
+                continue
+            
+            # Check for clear session memory
+            if user_input.lower() in ['clear', '클리어', 'clear memory', '메모리 클리어']:
+                host.clear_session_memory()
                 continue
             
             # Check for raw data display
